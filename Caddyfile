@@ -1,6 +1,8 @@
 erik-schuetze.dev {
+    # Serve over HTTPS (Caddy automatically handles this)
     root * /usr/share/caddy
     file_server
-    # Enable automatic HTTPS
-    encode gzip
+
+    # Explicitly enable HTTP->HTTPS redirection
+    redir http://erik-schuetze.dev/* https://erik-schuetze.dev{uri}
 }
