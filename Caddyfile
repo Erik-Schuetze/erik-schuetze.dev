@@ -1,4 +1,6 @@
-:80
-
-root * /usr/share/caddy
-file_server
+erik-schuetze.dev {
+    root * /usr/share/caddy
+    file_server
+    # Enable automatic HTTPS
+    encode gzip
+}
