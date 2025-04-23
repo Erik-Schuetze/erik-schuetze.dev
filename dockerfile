@@ -1,3 +1,4 @@
 FROM caddy:alpine
 
-COPY ./Caddyfile /etc/caddy/Caddyfile
+ARG CADDYFILE=Caddyfile.prod
+COPY ./${CADDYFILE} /etc/caddy/Caddyfile
