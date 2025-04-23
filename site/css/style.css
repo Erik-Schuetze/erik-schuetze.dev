@@ -1,0 +1,368 @@
+:root {
+    --primary-color: #0b162a;
+    --accent-color: #1b4bc6;
+    --bg-color: #efdbbf;
+    --bg-light: #f1eae0;
+    --text-color: #2d3436;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background: var(--bg-color);
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--bg-color);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    transition: color 0.3s ease;
+    font-size: clamp(0.9rem, 2.5vw, 1.2rem);  /* Responsive font size */
+    font-weight: 600;
+}
+
+.nav-links a:hover {
+    color: var(--accent-color);
+}
+
+.nav-brand {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);  /* Responsive font size */
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.hero-container {
+    position: relative;
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    
+}
+
+.hero-shadow {
+    position: absolute;
+    height: 50vh;
+    width: 70vw;
+    background-color: var(--accent-color);
+    transform: translate(12px, 12px);
+    z-index: 1;
+}
+
+.hero {
+    position: relative;
+    height: 50vh;
+    width: 70vw;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--bg-light);
+    z-index: 2;
+    box-shadow: 0 0 0 2px var(--accent-color);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.hero h1 {
+    font-size: clamp(1.6rem, 4.6vw, 3.8rem);
+    margin-bottom: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.hero .subtitle {
+    font-size: clamp(0.9rem, 2.5vw, 2rem);
+    margin-bottom: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.hero .subtitle:last-of-type {
+    font-size: clamp(0.7rem, 2vw, 1.6rem);
+    opacity: 0.9;
+}
+
+.cta-buttons .btn {
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.8rem 1.5rem;
+    margin: 0.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+#resume-box {
+    bottom: 3rem;
+    left: 3rem;
+    animation: float 3s ease-in-out infinite;
+}
+#github-box {
+    bottom: 3rem;
+    right: 5rem;
+    animation: float 3.5s ease-in-out infinite;
+}
+#linkedin-box {
+    bottom: 6rem;
+    left: 25vw;
+    animation: float 4s ease-in-out infinite;
+}
+#about-box {
+    bottom: 2rem;
+    right: 35vw;
+    animation: float 2.8s ease-in-out infinite;
+}
+
+.floating-box {
+    position: fixed;
+    text-decoration: none;
+    z-index: 10;
+}
+
+.floating-box-shadow {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    background-color: var(--accent-color);
+    transform: translate(8px, 8px);
+    z-index: 1;
+}
+
+.floating-box-content {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    background-color: var(--bg-light);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--text-color);
+    box-shadow: 0 0 0 2px var(--accent-color);
+    z-index: 2;
+    transition: transform 0.3s ease;
+}
+
+.floating-box:hover .floating-box-content {
+    transform: translate(-2px, -2px);
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.about-layout {
+    display: grid;
+    grid-template-columns: 1fr 3fr 5fr 1fr;
+    gap: 2rem;
+    padding: 4rem 0;  /* Remove horizontal padding since we're using grid */
+    min-height: 80vh;
+    align-items: center;
+}
+
+.content-container {
+    grid-column: 3 / 4;  /* Takes up the third column */
+    position: relative;
+}
+
+.photo-container {
+    grid-column: 2 / 3;  /* Takes up the second column */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float 4s ease-in-out infinite;
+}
+
+.content-shadow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--accent-color);
+    transform: translate(8px, 8px);
+    z-index: 1;
+}
+
+.photo-shadow {
+    position: absolute;
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    background-color: var(--accent-color);
+    transform: translate(8px, 8px);
+    z-index: 1;
+}
+
+.photo, .content {
+    position: relative;
+    background-color: var(--bg-light);
+    box-shadow: 0 0 0 2px var(--accent-color);
+    z-index: 2;
+    padding: 2rem;
+}
+
+.photo {
+    position: relative;
+    max-width: 600px;
+    width: 100%;
+    background-color: var(--bg-light);
+    box-shadow: 0 0 0 2px var(--accent-color);
+    z-index: 2;
+    padding: 2rem;
+    transform-origin: center;
+}
+
+.photo img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.section-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+.subsection-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    margin: 2rem 0 1rem;
+    color: var(--primary-color);
+}
+
+.content p {
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Add media query for mobile devices */
+@media screen and (max-width: 768px) {
+    .navbar {
+        padding: 0.5rem 1rem;  /* Reduced padding on mobile */
+    }
+    
+    .nav-links {
+        gap: 1rem;  /* Reduced gap between links on mobile */
+    }
+
+    /* Adjust hero position */
+    .hero-container {
+        height: 60vh;  /* Move hero up by 10% */
+    }
+
+    .hero {
+        height: 37vh;
+        width: 80vw;
+        padding: 0.5rem;
+    }
+
+    .hero-shadow {
+        height: 37vh;
+        width: 80vw;
+    }
+
+    /* Scale down floating boxes */
+    .floating-box-shadow,
+    .floating-box-content {
+        width: 70px;  
+        height: 70px;
+    }
+
+    .floating-box-content {
+        font-size: 0.7rem;
+    }
+
+    /* Adjust floating box positions for mobile */
+    #resume-box {
+        bottom: 2rem;
+        left: 1rem;
+    }
+    #github-box {
+        bottom: 4rem;
+        right: 1rem;
+    }
+    #linkedin-box {
+        bottom: 5rem;
+        left: 6.8rem;
+    }
+    #about-box {
+        bottom: 2.5rem;
+        right: 7rem;
+    }
+
+    /* Reduce float animation distance */
+    @keyframes float {
+        0% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-6px);  /* Reduced from -10px */
+        }
+        100% {
+            transform: translateY(0px);
+        }
+    }
+
+    .about-layout {
+        display: flex;  /* Switch back to flex for mobile */
+        flex-direction: column;
+        padding: 2rem;
+        gap: 2rem;
+    }
+
+    .photo-container, .content-container {
+        width: 100%;
+    }
+
+    .photo-container {
+        flex: 3;  /* Maintain the same ratio */
+        animation: float 3s ease-in-out infinite; /* Slightly faster on mobile */
+    }
+
+    .content-container {
+        flex: 5;  /* Maintain the same ratio */
+    }
+
+    .photo-shadow, .content-shadow {
+        transform: translate(6px, 6px);
+    }
+}
