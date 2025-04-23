@@ -1,4 +1,4 @@
-erik-schuetze.dev {
+erik-schuetze.dev, www.erik-schuetze.dev {
     # Serve over HTTPS (Caddy automatically handles this)
     root * /usr/share/caddy
     file_server
