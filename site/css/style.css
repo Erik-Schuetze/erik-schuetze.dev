@@ -67,8 +67,9 @@ body {
 
 .nav-brand {
     font-size: clamp(1.1rem, 3vw, 1.5rem);  /* Responsive font size */
-    font-weight: 700;
+    font-weight: 800;
     color: var(--primary-color);
+
 }
 
 .hero-container {
@@ -200,7 +201,7 @@ body {
         transform: translateY(0px);
     }
     50% {
-        transform: translateY(-10px);
+        transform: translateY(-12px);
     }
     100% {
         transform: translateY(0px);
@@ -355,7 +356,7 @@ body {
             transform: translateY(0px);
         }
         50% {
-            transform: translateY(-6px);  /* Reduced from -10px */
+            transform: translateY(-8px); 
         }
         100% {
             transform: translateY(0px);
