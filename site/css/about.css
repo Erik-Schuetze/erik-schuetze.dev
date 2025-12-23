@@ -95,6 +95,10 @@
     color: var(--primary-color);
 }
 
+.floating-box-about {
+    text-decoration: none;
+}
+
 /* Add media query for mobile devices */
 @media screen and (max-width: 768px) {
     .about-layout {
