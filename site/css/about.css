@@ -1,0 +1,131 @@
+.about-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr 5fr 1fr 1fr;
+    gap: 2rem;
+    padding: 4rem 0;  /* Remove horizontal padding since we're using grid */
+    min-height: 80vh;
+    align-items: center;
+}
+
+.link-collection {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    gap: 1rem;
+    height: 60vh;
+}
+
+
+.photo-container {
+    grid-column: 2 / 3;  /* Takes up the second column */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float 4s ease-in-out infinite;
+}
+
+.photo-shadow {
+    position: absolute;
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    background-color: var(--accent-color);
+    transform: translate(8px, 8px);
+    z-index: 1;
+}
+
+.content-container {
+    grid-column: 3 / 4;  /* Takes up the third column */
+    position: relative;
+}
+
+.content-shadow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: var(--accent-color);
+    transform: translate(8px, 8px);
+    z-index: 1;
+}
+
+.photo, .content {
+    position: relative;
+    background-color: var(--bg-light);
+    box-shadow: 0 0 0 2px var(--accent-color);
+    z-index: 2;
+    padding: 2rem;
+}
+
+.content p {
+    font-size: clamp(1rem, 1.5vw, 1.2rem);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.photo {
+    position: relative;
+    max-width: 600px;
+    width: 100%;
+    background-color: var(--bg-light);
+    box-shadow: 0 0 0 2px var(--accent-color);
+    z-index: 2;
+    padding: 2rem;
+    transform-origin: center;
+}
+
+.photo img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.section-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+
+.subsection-heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    margin: 2rem 0 1rem;
+    color: var(--primary-color);
+}
+
+/* Add media query for mobile devices */
+@media screen and (max-width: 768px) {
+    .about-layout {
+        display: flex;  /* Switch back to flex for mobile */
+        flex-direction: column;
+        padding: 2rem;
+        gap: 2rem;
+    }
+    
+    .photo-container, .content-container {
+        width: 100%;
+    }
+
+    .photo-container {
+        flex: 3;  /* Maintain the same ratio */
+        animation: float 3s ease-in-out infinite; /* Slightly faster on mobile */
+    }
+
+    .content-container {
+        flex: 5;  /* Maintain the same ratio */
+    }
+
+    .photo-shadow, .content-shadow {
+        transform: translate(6px, 6px);
+    }
+
+    .link-collection {
+        flex-direction: row;
+        justify-content: space-evenly;
+        height: auto;
+        gap: 2rem;
+        width: 100%;
+    }
+}
