@@ -169,6 +169,9 @@ body {
     left: 25vw;
     animation: float 4s ease-in-out infinite;
 }
+#linkedin-box {
+    animation: float 5s ease-in-out infinite;
+}
 #about-box {
     bottom: 3rem;
     right: 35vw;
