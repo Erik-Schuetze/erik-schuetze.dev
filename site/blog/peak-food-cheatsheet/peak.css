@@ -1,7 +1,7 @@
 .table {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.6rem;
     margin-bottom: 3rem;
 }
 
@@ -16,6 +16,7 @@
 .name {
     font-weight: bold;
     font-size: 1.1rem;
+    text-align: center;
 }
 
 .icon {
@@ -35,10 +36,15 @@
 .stat-icon {
     width: 28px;
     height: 28px;
-    margin-right: 8px;
+    margin: 0px 6px;
 }
 
 .description {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    padding: 8px 0;
     font-size: 0.9rem;
     color: #555;
     text-align: center;
@@ -68,15 +74,27 @@
     filter: brightness(0) saturate(100%) invert(57%) sepia(63%) saturate(3822%) hue-rotate(298deg) brightness(99%) contrast(84%) drop-shadow(1px 1px 0px #000);
 }
 
+.cursed {
+    filter: brightness(0) saturate(100%) invert(11%) sepia(7%) saturate(6351%) hue-rotate(217deg) brightness(97%) contrast(115%) drop-shadow(1px 1px 0px #000);
+}
+
+.spores {
+    filter: brightness(0) saturate(100%) invert(46%) sepia(48%) saturate(538%) hue-rotate(305deg) brightness(79%) contrast(79%) drop-shadow(1px 1px 0px #000);
+}
+
+.thorns {
+    filter: brightness(0) saturate(100%) invert(36%) sepia(78%) saturate(1727%) hue-rotate(50deg) brightness(99%) contrast(101%) drop-shadow(1px 1px 0px #000);
+}
+
 @media (max-width: 768px) {
     .icon {
         width: 48px;
         height: 48px;
     }
 
-    .name p{
-        font-size: 0.8rem;
-        font-weight: normal;
+    .name {
+        font-size: 0.7rem !important;
+        font-weight: bold;
     }
 
     .stat {
@@ -91,6 +109,7 @@
         height: 14px;
         margin-right: 4px;
     }
+
     .description {
         font-size: 0.6rem !important;
     }

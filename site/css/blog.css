@@ -18,7 +18,7 @@
 .content-container {
     grid-column: 2 / 3;
     position: relative;
-    min-height: 60vh;
+    min-height: 20vh;
 }
 
 .content-shadow {
@@ -53,6 +53,12 @@
 .content a:hover {
     color: var(--accent-color);
     text-decoration: underline;
+}
+
+.section-heading a {
+    color: var(--text-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
 }
 
 .title {
@@ -105,6 +111,6 @@
     }
 
     .content {
-        padding: 1.5rem;
+        padding: 1rem;
     }
 }
