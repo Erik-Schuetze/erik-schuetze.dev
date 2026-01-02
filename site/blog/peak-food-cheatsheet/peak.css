@@ -88,26 +88,26 @@
 
 @media (max-width: 768px) {
     .icon {
-        width: 48px;
-        height: 48px;
+        width: 42px;
+        height: 42px;
     }
 
     .name {
-        font-size: 0.7rem !important;
+        font-size: 0.68rem !important;
         font-weight: bold;
     }
 
     .stat {
         height: 14px;
-        font-size: 0.4rem;
+        font-size: 0.5rem !important;
         font-weight: normal;
         padding: 4px 0;
     }
 
     .stat-icon {
-        width: 14px;
-        height: 14px;
-        margin-right: 4px;
+        width: 16px;
+        height: 16px;
+        margin: 0 2px;
     }
 
     .description {

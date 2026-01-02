@@ -41,7 +41,7 @@
 }
 
 .content p {
-    font-size: clamp(0.6rem, 1.5vw, 1.2rem);
+    font-size: clamp(0.8rem, 1.5vw, 1.2rem);
     line-height: 1.4;
 }
 
