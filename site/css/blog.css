@@ -55,6 +55,21 @@
     text-decoration: underline;
 }
 
+.article-heading {
+    display: flex;
+    flex-direction: row;
+    align-items: top;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.article-thumbnail {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
 .section-heading a {
     color: var(--text-color);
     text-decoration: none;
@@ -87,7 +102,7 @@
 .subsection-heading {
     font-family: 'JetBrains Mono', monospace;
     font-size: clamp(0.9rem, 2vw, 1.6rem);
-    margin: 2rem 0 1rem;
+    margin: 1rem 0;
     color: var(--primary-color);
 }
 
@@ -112,5 +127,10 @@
 
     .content {
         padding: 1rem;
+    }
+
+    .article-thumbnail {
+        width: 42px;
+        height: 42px;
     }
 }
