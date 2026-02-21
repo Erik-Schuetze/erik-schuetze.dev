@@ -1,0 +1,10 @@
+.banto-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  list-style-position: outside;
+  line-height: 1.6;
+}
+
+.banto-list li {
+  margin: 0.35rem 0;
+}
