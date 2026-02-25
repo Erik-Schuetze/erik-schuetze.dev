@@ -13,7 +13,7 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Inter', sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--bg-color);
@@ -72,8 +72,9 @@ body {
 
 .nav-brand {
     font-size: clamp(1.1rem, 3vw, 1.5rem);  /* Responsive font size */
-    font-weight: 800;
+    font-weight: 700;
     color: var(--primary-color);
+    font-family: 'Montserrat', sans-serif;
 }
 
 .nav-brand a {
@@ -205,6 +206,7 @@ body {
     align-items: center;
     font-family: 'JetBrains Mono', monospace;
     font-size: 1.2rem;
+    font-weight: 500;
     color: var(--text-color);
     box-shadow: 0 0 0 2px var(--accent-color);
     z-index: 2;
