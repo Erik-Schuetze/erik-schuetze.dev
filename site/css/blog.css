@@ -101,6 +101,7 @@
 .subsection-heading {
     font-family: 'JetBrains Mono', monospace;
     font-size: clamp(0.9rem, 2vw, 1.6rem);
+    font-weight: 600;
     margin: 1rem 0;
     color: var(--primary-color);
 }
