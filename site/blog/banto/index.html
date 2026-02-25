@@ -36,7 +36,7 @@
           <div class="content-shadow"></div>
           <div class="content">
               <h2 class="title">Bantō - Minimal Kanban</h2>
-              <p class="subtitle">My very simple implementation of a kanban board. Development ongoing</p>
+              <p class="subtitle">My very simple implementation of a kanban board.</p>
           </div>
       </div>
 
@@ -44,50 +44,85 @@
         <div class="content-shadow"></div>
         <div class="content">
           <div class="article-heading">
-            <h2 class="section-heading">What is Bantō?</h2>
+            <h2 class="section-heading">I built a kanban board</h2>
             <img class="article-thumbnail" src="/blog/banto/assets/banto.webp" alt="Banto Logo">
           </div>
           <p>
-            Bantō is my take on a simple minimalist kanban board. I want something small and focused that keeps
-            the workflow clear: define a few columns, add cards, and move them along until they are done.
+            Bantō is a minimal kanban board that runs entirely in your browser. No account, no server,
+            no database. Open the page, start organizing, and everything saves itself automatically
+            to local storage. That's it.
           </p>
           <p>
-            The goal is to keep the UI calm and the interaction obvious, so the board stays useful even when it
-            is tiny and personal.
+            I had this idea sitting in my head for months. Most task management tools out there are
+            either way too heavy — think Jira, Notion, Linear — or they require you to create an account
+            and sync everything through the cloud. I just wanted a simple board for my homelab projects
+            that does its job without getting in the way.
           </p>
           <p>
-            I want Bantō to feel intuitive and not bloated. There is a reason pen and paper still works so well:
-            everyone knows how it behaves. Software can surprise you in annoying ways, so I am aiming for a board
-            that feels as predictable and as easy as writing things down.
+            It started as a university project for a business software course, but honestly it was mostly
+            an excuse to build something I actually wanted to use. The whole thing is zero dependencies:
+            no npm, no bundler, no framework. Just HTML, CSS, and about 1,300 lines of vanilla JavaScript.
+          </p>
+
+          <h3 class="subsection-heading">Keep it simple</h3>
+          <p>
+            There is a reason pen and paper still works so well — everyone knows exactly how it behaves.
+            Software can surprise you in annoying ways, and those small moments of confusion add up.
+            I heard someone put it really well in a podcast: most apps are packed with features and take
+            forever to learn, when all you needed was a quick note on a piece of paper.
+          </p>
+          <p>
+            That idea stuck with me. I also read a book about Dieter Rams and the Braun design philosophy —
+            the whole "less but better" approach. Bantō should feel as obvious and predictable as writing
+            things down by hand. Click to edit, drag to move, done. No modal dialogs, no settings pages,
+            no learning curve.
           </p>
 
           <h3 class="subsection-heading">Why the name?</h3>
           <p>
-            The name comes from Japanese bento boxes and kanban boards. Bento boxes are neat, tidy, and practical,
-            and kanban is all about visible, simple flow. Bantō is meant to feel like both: organized, lightweight,
-            and easy to use.
+            Bantō (番頭) is a Japanese word for a manager or head clerk — someone who keeps things in order
+            quietly and reliably. It also nods to bento boxes and kanban boards: bento boxes are neat, tidy,
+            and practical, and kanban is all about visible, simple flow. The name is meant to capture both:
+            organized, lightweight, and calm.
           </p>
 
-          <h3 class="subsection-heading">Planned features</h3>
+          <h3 class="subsection-heading">What it can do</h3>
           <ul class="banto-list">
-            <li>Custom columns</li>
-            <li>Cards with only a title and body</li>
-            <li>Quick add card shortcut</li>
-            <li>Inline edits</li>
-            <li>Undo and redo</li>
-            <li>Move cards across columns</li>
+            <li>Create, rename, reorder, and delete columns</li>
+            <li>Add cards with a title and description — inline editing everywhere</li>
+            <li>Drag and drop cards and columns freely</li>
             <li>Mark cards as complete</li>
-            <li>Optional: backlog and completed views</li>
-            <li>Initial save and load as JSON</li>
-            <li>Session storage later on</li>
-            <li>Login and database sync later</li>
-            <li>Tags and priorities</li>
+            <li>Full undo and redo that persists across sessions</li>
+            <li>Export and import your board as JSON</li>
+            <li>Keyboard shortcuts for common actions</li>
+            <li>Touch and mobile support with long-press drag</li>
+            <li>Auto-save — there is no save button, it just works</li>
           </ul>
+
+          <h3 class="subsection-heading">Design</h3>
+          <p>
+            The board uses a warm, papery aesthetic — a beige parchment background with a subtle blue grid
+            texture, cobalt blue accents, and cards with a flat geometric drop shadow. I wanted it to feel
+            like a productive workspace, not a corporate dashboard.
+          </p>
+          <p>
+            Action buttons on cards stay hidden until you hover over them, keeping the board visually clean.
+            On mobile, everything adapts: columns scroll horizontally, and buttons are always visible since
+            there is no hover state. Small details, but they make a difference.
+          </p>
+
+          <h3 class="subsection-heading">Self-hostable</h3>
+          <p>
+            Bantō is a static site — no build step, no server-side processing. You can drop it on any web server,
+            or run it with a single <code>docker-compose up</code>. I run mine on my own hardware in a K3s
+            cluster, served by Caddy with automatic HTTPS.
+          </p>
 
           <h3 class="subsection-heading">Try it</h3>
           <p>
-            The app will live at <a href="https://banto.erik-schuetze.dev" target="_blank">banto.erik-schuetze.dev</a>.
-            When it is ready, you can use it directly in your browser.
+            Bantō is live at <a href="https://banto.erik-schuetze.dev" target="_blank">banto.erik-schuetze.dev</a>.
+            Everything stays in your browser — no data ever leaves your machine. The source code is MIT-licensed
+            and available on <a href="https://github.com/Erik-Schuetze/banto" target="_blank">GitHub</a>.
           </p>
         </div>
       </div>
