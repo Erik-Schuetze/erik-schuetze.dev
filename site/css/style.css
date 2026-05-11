@@ -22,7 +22,8 @@ body {
         linear-gradient(90deg, rgba(27, 75, 198, 0.06) 1px, transparent 1px);
     background-size: 27px 27px;
     background-position: center center;
-    padding-top: 4rem; /* Adjust this value based on your navbar height */
+    padding-top: 4rem;
+    overflow-x: hidden;
 }
 
 .navbar {
