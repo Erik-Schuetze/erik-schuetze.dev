@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vega Frontier AI Server - Erik Schütze</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+    <link rel="stylesheet" href="/blog/vega-frontier/vega.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">Taming the Vega Frontier Edition</h2>
+            <p class="subtitle">Building a silent 14B AI inference server in K3s</p>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">Re-engineering a legendary hot and loud graphics card into a silent AI node</h2>
+                <img class="article-thumbnail" src="/blog/vega-frontier/assets/vega-logo.webp" alt="Vega Frontier Edition">
+            </div>
+            <p>
+                The AMD Vega Frontier Edition is a legacy workstation card from 2017. It is similar to the Vega 64, but it features 16GB of HBM2 VRAM, as opposed to 8GB on the regular Vega cards.
+            </p>
+            <p>
+                These cards were notorious for being incredibly power-hungry, running hot, and sounding like a jet engine under load. However it was also incredibly good for compute workloads and features a 2048-bit memory bus, which is perfect for local AI experiments.
+            </p>
+            <p>
+                Large Language Model (LLM) inference, specifically single-user generation at 4-bit quantization, is almost entirely bound by memory bandwidth rather than raw compute logic. The Vega's 483 GB/s memory bandwidth means it theoretically has the pipeline to process 14-billion parameter models effectively. The challenge was bypassing the original thermal and power inefficiencies to build a completely silent, K3s-native inference server for my home office.
+            </p>
+            <p>
+                Here is the engineering breakdown of how I achieved a sustained <strong>15-17 tokens/s</strong> on <code>qwen2.5:14b-instruct-q4_K_M</code> while keeping the blower fan near-silent.
+            </p>
+
+            <h3 class="subsection-heading">Architecture: Vega 10 Silicon</h3>
+            <p>
+                The Vega Frontier Edition is built around AMD's <strong>Vega 10</strong> die, fabricated on GlobalFoundries' 14nm FinFET LPP process. The die measures approximately 495 mm² and packs 12.5 billion transistors. It is one of the largest monolithic GPU dies of its generation.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/vega-frontier/assets/die-shot.jpeg" alt="Vega 10 die shot">
+                </div>
+                <figcaption>Vega 10 die — the two HBM2 stacks sit directly adjacent to the GPU logic die on a shared silicon interposer, connected via a 2048-bit wide memory interface.</figcaption>
+            </figure>
+            <p>
+                The standout feature visible in the die shot is the <strong>HBM2 memory subsystem</strong>. Rather than GDDR memory mounted on the PCB, two HBM2 stacks are placed on the same package interposer as the GPU die itself. Each stack provides 8 GB of VRAM, totalling 16 GB and <strong>483 GB/s</strong> — roughly four times the bandwidth of contemporary GDDR5 cards at a fraction of the PCB area. This is what makes the Vega Frontier Edition relevant for LLM inference in 2026 despite its age.
+            </p>
+
+            <h3 class="subsection-heading">The Build: Card Inside the Case</h3>
+            <p>
+                The card lives inside a Lian-Li Dan Case A3 that sits quietly in a home-office cupboard.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/vega-frontier/assets/server.jpeg" alt="Vega Frontier Edition installed in the server case">
+                </div>
+                <figcaption>The Vega Frontier Edition seated in one of my K3s nodes. The blower shroud exhausts entirely through the back, making it well-suited for enclosed, noise-sensitive environments.</figcaption>
+            </figure>
+
+            <h3 class="subsection-heading">Finding the Silicon Efficiency Node</h3>
+            <p>
+                AMD pushed the 14nm Vega silicon way past its optimal efficiency node at the factory to compete in raw compute benchmarks. Pushing 250W into the card yields massive amounts of thermal waste for very little compute gain. (<a href="https://www.techpowerup.com/gpu-specs/asus-rog-strix-rx-vega-64-gaming-oc.b4814" target="_blank" rel="noopener">Some Vega 64 cards</a> even had a thermal limit of 300W which could be tuned to 330W)
+            </p>
+            <p>
+                To find the absolute sweet spot for my inference workload, I executed an example prompt directly inside my containerized Ollama instance via the K3s control plane, capping the host-level Package Power Tracking (PPT) at various intervals. The goal was to measure <strong>Tokens per Watt (Tokens/Joule)</strong>.
+            </p>
+
+            <table class="content-table efficiency-table">
+                <thead>
+                <tr>
+                    <th>Power Limit</th>
+                    <th>Tokens/s</th>
+                    <th>Efficiency (Tokens/Watt)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>90.0 W</td>
+                    <td>11.08 t/s</td>
+                    <td>0.123 T/W</td>
+                </tr>
+                <tr>
+                    <td>95.0 W</td>
+                    <td>12.88 t/s</td>
+                    <td>0.136 T/W</td>
+                </tr>
+                <tr class="peak-row">
+                    <td><strong>100.0 W</strong></td>
+                    <td><strong>16.88 t/s</strong></td>
+                    <td><strong>0.169 T/W (Peak Node)</strong></td>
+                </tr>
+                <tr>
+                    <td>110.0 W</td>
+                    <td>17.81 t/s</td>
+                    <td>0.162 T/W</td>
+                </tr>
+                <tr>
+                    <td>250.0 W</td>
+                    <td>23.35 t/s</td>
+                    <td>0.093 T/W</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <p>
+                At 90.0W, the memory controller didn't have enough voltage overhead and downclocked its P-state, cratering performance. Above 110.0W, efficiency rapidly degraded. By strictly capping the power limit to <strong>100.0 W</strong>, I secured the highest compute-to-waste ratio. Setting this via <code>sysfs</code>:
+            </p>
+            <pre><code>echo 100000000 > /sys/class/drm/card0/device/hwmon/hwmon1/power1_cap</code></pre>
+
+            <h3 class="subsection-heading">Hardware Preparation & Acoustic Mapping</h3>
+            <p>
+                To ensure thermal transfer was optimal under sustained loads, I replaced the VRM thermal pads and installed a brand-new blower fan. The bearing in the new fan had tighter tolerances, which completely changed the acoustic profile.
+            </p>
+            <p>
+                Instead of relying on percentages, I mapped the exact tachometer RPM to the PWM values: (PWM: 0-255)
+            </p>
+            <ul>
+                <li><strong>PWM 26:</strong> 675 RPM (Silent Idle)</li>
+                <li><strong>PWM 40:</strong> 930 RPM (Barely audible)</li>
+                <li><strong>PWM 50:</strong> 1187 RPM (Noticeable)</li>
+                <li><strong>PWM 64:</strong> 1425 RPM (Low Fan Hum)</li>
+                <li><strong>PWM 80:</strong> 1805 RPM (Highly audible safety catch)</li>
+            </ul>
+
+            <h3 class="subsection-heading">The Dual-Sensor Hysteresis Controller</h3>
+            <p>
+                A custom bash script was required to manage the thermals. The critical flaw in standard fan curves is ignoring the memory. The HBM2 stacks are adjacent to the logic die and have a critical limit of <strong>95.0°C</strong>, whereas the core Junction can sustain <strong>105.0°C</strong>.
+            </p>
+            <p>
+                I wrote a <code>systemd</code> service script that reads both sensors, applies an artificial +5°C offset to the memory to prioritize its safety, and uses hysteresis to prevent the fan motor from "hunting" between states.
+            </p>
+
+            <pre><code>#!/bin/bash
+# Vega Frontier Fan Controller - Finalized Efficiency Node
+HWMON="/sys/class/drm/card0/device/hwmon/hwmon1"
+
+# 1. Enable manual fan control
+echo "1" > "$HWMON/pwm1_enable"
+
+# 2. Set Power Limit to 100.00 W
+if [ -f "$HWMON/power1_cap" ]; then
+    echo "100000000" > "$HWMON/power1_cap"
+fi
+
+CURRENT_PWM=0
+
+while true; do
+    JUNCTION=$(( $(cat "$HWMON/temp2_input") / 1000 ))
+    MEM=$(( $(cat "$HWMON/temp3_input") / 1000 ))
+
+    # Apply +5 offset to HBM2 to force fan reaction before throttling (95°C)
+    EFFECTIVE_MEM=$(( MEM + 5 ))
+
+    if [ "$EFFECTIVE_MEM" -gt "$JUNCTION" ]; then
+        TARGET_TEMP=$EFFECTIVE_MEM
+    else
+        TARGET_TEMP=$JUNCTION
+    fi
+
+    # Target PWM logic
+    if [ "$TARGET_TEMP" -lt 60 ]; then
+        NEW_PWM=26    # ~675 RPM (Silent Idle)
+    elif [ "$TARGET_TEMP" -lt 75 ]; then
+        NEW_PWM=31    # ~725 RPM (Near Silent)
+    elif [ "$TARGET_TEMP" -lt 86 ]; then
+        NEW_PWM=40    # ~930 RPM (Warming up)
+    elif [ "$TARGET_TEMP" -lt 91 ]; then
+        NEW_PWM=50    # ~1187 RPM (Heavy Load Entry)
+    elif [ "$TARGET_TEMP" -lt 95 ]; then
+        NEW_PWM=60    # ~1339 RPM (Standard Workload - HBM2 up to 89°C)
+    elif [ "$TARGET_TEMP" -lt 97 ]; then
+        NEW_PWM=64    # ~1425 RPM (Heatsoak Bridge - avoids harmonic resonance)
+    elif [ "$TARGET_TEMP" -lt 99 ]; then
+        NEW_PWM=80    # ~1805 RPM (Safety Catch - HBM2 at 92°C to 93°C)
+    else
+        NEW_PWM=255   # Max RPM (Emergency Thermal Runaway - HBM2 >= 94°C)
+    fi
+
+    if [ "$NEW_PWM" -ne "$CURRENT_PWM" ]; then
+        echo "$NEW_PWM" > "$HWMON/pwm1"
+        CURRENT_PWM=$NEW_PWM
+    fi
+
+    sleep 5
+done</code></pre>
+
+            <h3 class="subsection-heading">Wiring It Into K3s</h3>
+            <p>
+                The fan controller runs as a <code>systemd</code> service on the bare-metal node itself. Everything above that lives inside Kubernetes — self-contained by design. If the GPU node disappears from the cluster, Ollama and Open WebUI go with it. If it comes back, they reschedule automatically.
+            </p>
+            <p>
+                The hard prerequisite is the <strong>AMD GPU driver on the host</strong>. Without it, nothing downstream works — no <code>/dev/kfd</code>, no <code>sysfs</code> hwmon entries, no GPU resource visible to Kubernetes. There is no way around this step.
+            </p>
+            <p>
+                Once the driver is in place, the <strong>AMD device plugin</strong> runs as a DaemonSet across every <code>amd64</code> node. It registers the physical GPU as a schedulable <code>amd.com/gpu</code> resource in the Kubelet and labels the node with hardware facts — VRAM size, CU count, product name — so you can target specific hardware without hardcoding hostnames.
+            </p>
+            <p>
+                The Vega node is tainted with <code>gpu: amd-vega</code>, so nothing lands on it unless it explicitly asks to. The Ollama deployment carries the matching toleration, a <code>nodeSelector</code> pinning it to the <code>vega</code> host, and a resource limit of <code>amd.com/gpu: 1</code>. If the driver isn't installed or the device plugin hasn't registered it yet, the pod simply stays <code>Pending</code>. No GPU, no schedule.
+            </p>
+            <p>A few runtime settings needed careful thought:</p>
+            <ul>
+                <li><strong>Vulkan over ROCm/HIP</strong> — Vega predates the ROCm versions that support it cleanly. Vulkan just works.</li>
+                <li><strong>Flash Attention disabled</strong> — the Vulkan backend doesn't support it reliably on this silicon.</li>
+                <li><strong>KV cache at q8_0</strong> — quantized to keep memory pressure manageable within the 16GB HBM2 budget.</li>
+                <li><strong>KEEP_ALIVE: -1</strong> — model stays permanently resident in VRAM, no reload penalty between requests.</li>
+            </ul>
+            <p>
+                On first startup the deployment pulls the model, bakes it into a custom <code>vega-qwen</code> modelfile with a capped 8192-token context window, and fires a dummy prompt to pre-warm the weights before the readiness probe ever passes.
+            </p>
+            <p>
+                Models live on a <code>hostPath</code> volume at <code>/opt/ollama/models</code> and survive pod restarts without re-downloading. Open WebUI is a separate deployment pointing at the Ollama service — decoupled, and only scheduled once Ollama is healthy.
+            </p>
+
+            <h3 class="subsection-heading">The Results</h3>
+            <p>
+                Under a sustained benchmark designed to heat-soak the cooler in a closed cupboard, the system settled into a perfect thermal equilibrium:
+            </p>
+            <ul>
+                <li><strong>Load Power:</strong> 100.00 W</li>
+                <li><strong>Memory Temp:</strong> 90.0°C — pinned with a 5°C buffer to the HBM2 limit</li>
+                <li><strong>Fan Speed:</strong> 1425 RPM (PWM 64)</li>
+                <li><strong>Throughput:</strong> 15.58 Tokens/s</li>
+            </ul>
+            <p>
+                Once inference finishes, P-states drop the card to <strong>5W</strong> and the fan returns to an inaudible 693 RPM.
+            </p>
+            <p class="closing">
+                By tuning the power limit, fan curve and replacing the dried-up thermal pads and paste, this legacy workstation GPU has become a highly capable, silent node in my K3s cluster.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>
