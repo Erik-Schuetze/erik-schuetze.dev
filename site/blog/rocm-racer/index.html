@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rocm-racer: A ROCm Reinforcement Learning Dojo - Erik Schütze</title>
+    <meta name="description" content="Training a PPO reinforcement-learning agent to drive Need for Speed: Underground 2 in PCSX2 using AMD ROCm on an RX 7900 XTX. Open source, currently paused.">
+    <meta name="keywords" content="ROCm, Reinforcement Learning, PPO, AMD, RX 7900 XTX, PCSX2, Need for Speed Underground 2, PINE IPC, Stable-Baselines3, Machine Learning, Open Source, Arch Linux">
+    <meta name="author" content="Erik Schütze">
+    <link rel="canonical" href="https://erik-schuetze.dev/blog/rocm-racer/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+    <link rel="stylesheet" href="/blog/rocm-racer/rocm-racer.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">rocm-racer</h2>
+            <p class="subtitle">Training a PPO agent to drive Need for Speed: Underground 2 on my RX 7900 XTX</p>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">A local ROCm training dojo for a PS2 racing game</h2>
+            </div>
+            <span class="status-badge">Paused / Work in Progress</span>
+            <p>
+                <a href="https://github.com/Erik-Schuetze/rocm-racer" target="_blank" rel="noopener"><code>rocm-racer</code></a> is my open-source reinforcement-learning project to train an autonomous driving agent against <strong>Need for Speed: Underground 2</strong> running in the PCSX2 emulator, entirely on my own hardware &mdash; an AMD Radeon RX 7900 XTX on Arch Linux, driven by AMD ROCm 7.1. No cloud GPUs, no rented compute. Just a PS2 emulator, a PPO agent, and a graphics card that was originally bought for gaming.
+            </p>
+            <p>
+                Before this turns into a highlight reel, the honest version: <strong>this project is paused.</strong> Other things are taking priority right now, and there's an unresolved telemetry problem &mdash; reading reliable vehicle coordinates out of the PS2's memory &mdash; that I never got to the bottom of. What follows is a snapshot of the architecture, the reverse-engineering rabbit hole I fell into, and exactly where it's stuck.
+            </p>
+
+            <h3 class="subsection-heading">Why a 2004 racing game?</h3>
+            <p>
+                Underground 2 runs on EA Black Box's engine, itself built on Criterion's RenderWare middleware &mdash; a platform well documented by two decades of PC cheat-engine and modding communities. It has a free-roam city with a long, simple highway loop that's ideal as a training track, and a 100%-completion save that skips every tutorial and unlock gate. <strong>Need for Speed: Most Wanted</strong> is planned as a second target since it shares the same engine, but Underground 2 came first.
+            </p>
+
+            <h3 class="subsection-heading">The stack</h3>
+            <div class="spec-grid">
+                <div class="spec-card">
+                    <span class="spec-label">GPU</span>
+                    <span class="spec-value">AMD RX 7900 XTX</span>
+                    <span class="spec-note">RDNA3, gfx1100</span>
+                </div>
+                <div class="spec-card">
+                    <span class="spec-label">Compute</span>
+                    <span class="spec-value">ROCm 7.1</span>
+                    <span class="spec-note">HSA_OVERRIDE_GFX_VERSION=11.0.0</span>
+                </div>
+                <div class="spec-card">
+                    <span class="spec-label">OS</span>
+                    <span class="spec-value">Arch Linux</span>
+                    <span class="spec-note">Hyprland (Wayland)</span>
+                </div>
+                <div class="spec-card">
+                    <span class="spec-label">ML stack</span>
+                    <span class="spec-value">PyTorch + SB3</span>
+                    <span class="spec-note">Stable-Baselines3, Gymnasium</span>
+                </div>
+                <div class="spec-card">
+                    <span class="spec-label">Algorithm</span>
+                    <span class="spec-value">PPO</span>
+                    <span class="spec-note">MultiInputPolicy, custom extractor</span>
+                </div>
+                <div class="spec-card">
+                    <span class="spec-label">Emulator</span>
+                    <span class="spec-value">PCSX2 (Qt)</span>
+                    <span class="spec-note">1x native, 4:3, PINE enabled</span>
+                </div>
+            </div>
+
+            <h3 class="subsection-heading">Reading the PS2's mind: telemetry over PINE</h3>
+            <p>
+                Older emulator memory-hacking tools got away with hardcoding a host address for the emulated console's RAM. PCSX2 dropped that entirely for 64-bit builds with ASLR, so guest memory is now allocated wherever the host OS heap feels like putting it. The fix is <strong>PINE</strong> (Protocol for Instrumentation of Emulators) &mdash; an IPC server built into PCSX2 that speaks in guest physical addresses over a Unix socket and handles the host-translation math internally.
+            </p>
+            <p>
+                My Python side connects to <code>$XDG_RUNTIME_DIR/pcsx2.sock</code> and reads the PS2's full 32&nbsp;MB Emotion Engine RAM directly &mdash; no <code>ptrace</code>, no <code>/proc/pid/mem</code>, no root. For a full heuristic scan I pull the entire 32&nbsp;MB block in one shot and reinterpret it as a <code>numpy</code> float32 array, which turns a scan that would take minutes over individual socket reads into something that runs in milliseconds.
+            </p>
+
+            <h3 class="subsection-heading">When PC cheat-engine offsets lie to you</h3>
+            <p>
+                Because Underground 2 shares its engine across PC, PS2, and GameCube, and because RenderWare's vector-processing requirements force every physics struct onto strict 16-byte boundaries, my working assumption was simple: the PC struct offsets documented by cheat-engine communities for years &mdash; position at <code>0x20</code>, velocity at <code>0x70</code>, speed at <code>0x90</code> &mdash; should map straight onto the PS2 build.
+            </p>
+            <p>
+                They didn't. Every one of the 29&ndash;40 candidate structs I scanned read exactly <code>0.000</code> at those offsets while the car was doing 90&nbsp;km/h. The PS2 EA Black Box build uses a different struct layout, a different allocation container, or a console-specific entity header &mdash; and there's no public static pointer table for SLUS-21065 to fall back on.
+            </p>
+            <p>
+                So <code>--calibrate</code> exists instead: an empirical differential scan. Snapshot the full RAM while parked, snapshot again after 3 seconds of throttle, snapshot again after a turn, then intersect every candidate address against physics constraints &mdash; a normalized quaternion here, a speed value between 0 and 30&nbsp;m/s there, position that moves smoothly instead of teleporting. A real run looks like this:
+            </p>
+            <pre><code>[calibrate] Phase 1: snapshot while stopped (car must be stationary)...
+[calibrate] Phase 1: accelerating for 3.0s...
+[calibrate] Phase 1: 1,306 speed-float candidates
+[calibrate]   Top candidates (addr, value, unit):
+    0x000011F8    25.866 m/s
+    0x00081E58    25.845 m/s
+    0x004B4EF0    49.768 km/h
+    0x004C69A0    21.092 m/s
+
+[calibrate] Phase 2: searching for quaternion anchor in &#177;0x200 of each candidate...
+[calibrate]   &#10003; Speed @ 0x000011F8 (25.87 m/s) &#8594; quaternion @ 0x00001170 (&#931;&#178;=1.00000)
+
+[calibrate] Phase 3: discovering position/velocity offsets around quaternion...
+[calibrate]   &#9888;  No velocity triplet found.
+[calibrate]   &#9888;  No position triplet found.
+
+[calibrate] Phase 4: searching for static pointer to 0x000011F8...
+[calibrate]   &#9888;  No static pointer found. Direct address saved.</code></pre>
+            <p>
+                Since the vehicle struct is heap-allocated fresh every session, there's no fixed address to hardcode &mdash; the calibrator has to re-anchor itself (or fall back to a cached, direct address) each time. Across enough sessions, scalar speed and the X/Y/Z world position turned out to be solid: position moves ~14&nbsp;m per half-second at 100&nbsp;km/h, exactly what it should, and the speed value matches the in-game speedometer. Velocity and rotation are a different story &mdash; more on that below.
+            </p>
+
+            <h3 class="subsection-heading">A virtual gamepad with no GUI clicking</h3>
+            <p>
+                The agent needs to press real buttons. I create a virtual gamepad through <code>/dev/uinput</code> and write PCSX2's SDL3 <code>game_controller_db.txt</code> mapping <em>before</em> the emulator process even starts, so the device is enumerated as a proper controller from the very first SDL init &mdash; no manual "map your controller" step in the PCSX2 UI, ever. Every episode reset relaunches this cleanly and deterministically.
+            </p>
+            <p>
+                Steering and throttle/brake come out of PPO as a continuous 2-vector and get pushed straight onto the virtual analog stick axes at a 10&nbsp;Hz control loop.
+            </p>
+
+            <h3 class="subsection-heading">Multimodal PPO: eyes and telemetry</h3>
+            <p>
+                The policy fuses two branches through a custom <code>MultimodalExtractor</code> feeding Stable-Baselines3's <code>MultiInputPolicy</code>:
+            </p>
+            <ul>
+                <li><strong>Vision:</strong> the PCSX2 window is captured on Wayland via <code>grim</code> + <code>hyprctl</code> (no portal consent dialogs, works unattended across resets), cropped to drop the HUD, reduced to 96&times;96 grayscale, and stacked 4 frames deep. A small Atari-style CNN (three conv layers, 32&rarr;64&rarr;64 channels) processes the stack.</li>
+                <li><strong>Telemetry:</strong> the 5-value vector &mdash; speed and X/Y/Z position &mdash; goes through a two-layer MLP.</li>
+            </ul>
+            <p>
+                Both branches are concatenated and projected into a 512-dim feature vector for PPO's actor-critic heads. Training runs with <code>learning_rate=3e-4</code>, <code>n_steps=2048</code>, <code>batch_size=64</code>, on the ROCm device, with optional multi-instance parallel PCSX2 windows tiled across the desktop for faster rollout collection.
+            </p>
+
+            <h3 class="subsection-heading">Reward shaping</h3>
+            <p>
+                Every step rewards forward speed (capped at 150&nbsp;km/h, so there's no incentive to floor it past that), applies a small time penalty to create urgency, and gently penalizes jittery steering. Distance from the episode's start position pays out one-time milestone bonuses at 100&nbsp;m, 250&nbsp;m and 500&nbsp;m, plus a larger bonus for clearing the episode's success distance. Episodes terminate early if the car sits under 3&nbsp;km/h for 2 seconds (stuck) or under 15&nbsp;km/h for 5 seconds (crawling) &mdash; both after a short grace period so the agent has time to get moving from a standing start.
+            </p>
+            <p>
+                Per the project's own notes, the design also calls for freezing every environment's inputs and saving state around each PPO gradient update &mdash; so the car doesn't keep drifting or coasting into a wall while the GPU is busy computing on ROCm &mdash; plus an auto-escalating distance goal as the agent gets better. I'm flagging those as documented intent rather than something I re-verified end-to-end line by line while writing this post.
+            </p>
+
+            <h3 class="subsection-heading">Where it stands</h3>
+            <p>
+                With telemetry-only observations, roughly a quarter of training runs reach the 1000&nbsp;m distance goal on the highway loop. That's a real, if modest, signal that the reward shaping and control pipeline work. But the project stalled before I could push much further, and the blocker is exactly the "RAM coordinates" problem from the calibration section above:
+            </p>
+            <table class="content-table status-table">
+                <thead>
+                <tr>
+                    <th>Telemetry signal</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Scalar speed</td>
+                    <td class="status-ok">Verified</td>
+                    <td>Matches the in-game speedometer</td>
+                </tr>
+                <tr>
+                    <td>Position (X/Y/Z)</td>
+                    <td class="status-ok">Verified</td>
+                    <td>Smooth across the highway loop, ~1 unit &asymp; 1 m</td>
+                </tr>
+                <tr>
+                    <td>Velocity vector</td>
+                    <td class="status-bad">Unreliable</td>
+                    <td>Explodes to &#177;30,000 after a collision &mdash; likely a physics scratch buffer, not true velocity</td>
+                </tr>
+                <tr>
+                    <td>Rotation quaternion</td>
+                    <td class="status-bad">Unreliable</td>
+                    <td>Degenerate 2D wheel-spin angle, not a real 3D orientation; flips sign every frame in a straight line</td>
+                </tr>
+                <tr>
+                    <td>Track-progress flag</td>
+                    <td class="status-warn">Placeholder</td>
+                    <td>Offset not found yet &mdash; reward currently uses straight-line distance from the start, not path-relative progress</td>
+                </tr>
+                </tbody>
+            </table>
+            <p>
+                Without a trustworthy velocity and orientation, there's no clean way to detect a wall collision directly, reward staying pointed the right way down the road, or measure progress along a curved section of track instead of straight-line distance. That's the open problem I never fixed before other priorities took over.
+            </p>
+
+            <p class="closing">
+                <code>rocm-racer</code> is fully open source at <a href="https://github.com/Erik-Schuetze/rocm-racer" target="_blank" rel="noopener">github.com/Erik-Schuetze/rocm-racer</a>. It's paused, not abandoned &mdash; the PINE telemetry pipeline, the scripted virtual gamepad, and the multimodal PPO loop are all real and working on real hardware, and the memory-map notes are there for whenever I (or anyone else poking around AMD + RL + emulation) picks the coordinate problem back up.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

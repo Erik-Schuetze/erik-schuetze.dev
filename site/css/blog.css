@@ -111,6 +111,15 @@
     color: var(--primary-color);
 }
 
+/* ── Work-in-progress badge ── */
+.wip-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6em;
+    font-weight: 400;
+    color: var(--accent-color);
+    white-space: nowrap;
+}
+
 /* ── Closing statement ── */
 .closing {
     margin-top: 2rem;
