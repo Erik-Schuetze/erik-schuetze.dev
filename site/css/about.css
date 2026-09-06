@@ -1,29 +1,54 @@
 .about-layout {
     display: grid;
-    grid-template-columns: 1fr 2fr 5fr 1fr 1fr;
-    gap: 2rem;
-    padding: 4rem 0;  /* Remove horizontal padding since we're using grid */
+    grid-template-columns:
+        clamp(220px, 24vw, 360px)   /* photo column */
+        minmax(0, 46rem)            /* text column (readable measure) */
+        clamp(150px, 12vw, 220px);  /* link rail */
+    grid-template-areas: "photo content rail";
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;             /* top-align instead of vertical centering */
+    max-width: min(100%, 1400px);   /* centered shell on wide screens */
+    margin: 0 auto;
+    padding: 0.5rem clamp(1.25rem, 4vw, 3rem) 4rem;
     min-height: 80vh;
-    align-items: center;
 }
 
-.link-collection {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-    align-items: center;
-    gap: 1rem;
-    height: 60vh;
-}
-
-
+/* Photo tile first, anchored to the top of the text column */
 .photo-container {
-    grid-column: 2 / 3;  /* Takes up the second column */
+    grid-area: photo;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
     animation: float 4s ease-in-out infinite;
+}
+
+.content-container {
+    grid-area: content;
+    position: relative;
+    min-width: 0;
+}
+
+/* Right rail: link tiles spread evenly over the full text height */
+.link-collection {
+    grid-area: rail;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;   /* spread tiles over the full text height */
+    align-items: center;
+    align-self: stretch;   /* rail height = text column height */
+    min-width: 0;
+}
+
+/* Link tiles keep the plain text look, sized evenly and responsively */
+.link-collection .floating-box-shadow,
+.link-collection .floating-box-content {
+    width: clamp(7rem, 8.5vw, 10rem);
+    height: clamp(7rem, 8.5vw, 10rem);
+}
+
+.link-collection .floating-box-content {
+    font-size: clamp(0.8rem, 1.2vw, 1rem);
 }
 
 .photo-shadow {
@@ -34,11 +59,6 @@
     background-color: var(--accent-color);
     transform: translate(8px, 8px);
     z-index: 1;
-}
-
-.content-container {
-    grid-column: 3 / 4;  /* Takes up the third column */
-    position: relative;
 }
 
 .content-shadow {
@@ -100,26 +120,47 @@
     text-decoration: none;
 }
 
+/* Intermediate widths: rail drops below the text, photo | content stay side by side */
+@media screen and (max-width: 1100px) {
+    .about-layout {
+        grid-template-columns: clamp(170px, 26vw, 300px) minmax(0, 1fr);
+        grid-template-areas:
+            "photo content"
+            ".      rail";
+        gap: clamp(1.5rem, 3vw, 2.5rem);
+        padding: 0.5rem clamp(1.5rem, 4vw, 2.5rem) 3rem;
+    }
+
+    .link-collection {
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: center;
+        align-self: auto;
+        height: auto;
+        gap: 1rem;
+        padding-top: 0.5rem;
+    }
+}
+
 /* Add media query for mobile devices */
 @media screen and (max-width: 768px) {
     .about-layout {
         display: flex;  /* Switch back to flex for mobile */
         flex-direction: column;
-        padding: 2rem;
+        align-items: center;
+        padding: 0.5rem 1.25rem 3rem;
         gap: 2rem;
-    }
-    
-    .photo-container, .content-container {
-        width: 100%;
+        max-width: 100%;
     }
 
     .photo-container {
-        flex: 3;  /* Maintain the same ratio */
+        width: 100%;
+        max-width: min(72vw, 340px);  /* Photo first, but not full-screen */
         animation: float 3s ease-in-out infinite; /* Slightly faster on mobile */
     }
 
     .content-container {
-        flex: 5;  /* Maintain the same ratio */
+        width: 100%;
     }
 
     .photo-shadow, .content-shadow {
@@ -129,8 +170,21 @@
     .link-collection {
         flex-direction: row;
         justify-content: space-evenly;
+        align-items: center;
+        align-self: auto;
         height: auto;
-        gap: 2rem;
+        gap: 1rem;
         width: 100%;
+    }
+
+    /* About tiles stay readable on small screens (overrides style.css 70px) */
+    .link-collection .floating-box-shadow,
+    .link-collection .floating-box-content {
+        width: clamp(5.5rem, 26vw, 7.5rem);
+        height: clamp(5.5rem, 26vw, 7.5rem);
+    }
+
+    .link-collection .floating-box-content {
+        font-size: 0.85rem;
     }
 }
