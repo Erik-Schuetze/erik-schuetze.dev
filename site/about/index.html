@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About - Erik Schütze</title>
-    <meta name="description" content="About Erik Schütze, a DevOps Engineer at SAP, passionate about cloud infrastructure, Kubernetes, Go, and automation.">
-    <meta name="keywords" content="Erik Schütze, About, DevOps, SAP, Kubernetes, Go, Cloud Foundry, Dynatrace, Grafana, Open Source">
+    <meta name="description" content="About Erik Schütze, a Site Reliability Engineer at SAP working on cloud infrastructure, Kubernetes, Crossplane and Go, with a bare-metal homelab that hosts this website.">
+    <meta name="keywords" content="Erik Schütze, About, Site Reliability Engineering, Platform Engineering, SAP, Kubernetes, Crossplane, Go, Cloud Foundry, Observability, Open Source">
     <meta name="author" content="Erik Schütze">
     <link rel="canonical" href="https://erik-schuetze.dev/about/">
     <!-- Social / preview meta -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Erik Schütze">
     <meta property="og:title" content="About - Erik Schütze">
-    <meta property="og:description" content="About Erik Schütze, a DevOps Engineer at SAP, passionate about cloud infrastructure, Kubernetes, Go, and automation.">
+    <meta property="og:description" content="About Erik Schütze, a Site Reliability Engineer at SAP working on cloud infrastructure, Kubernetes, Crossplane and Go, with a bare-metal homelab that hosts this website.">
     <meta property="og:url" content="https://erik-schuetze.dev/about/">
     <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="About - Erik Schütze">
-    <meta name="twitter:description" content="About Erik Schütze, a DevOps Engineer at SAP, passionate about cloud infrastructure, Kubernetes, Go, and automation.">
+    <meta name="twitter:description" content="About Erik Schütze, a Site Reliability Engineer at SAP working on cloud infrastructure, Kubernetes, Crossplane and Go, with a bare-metal homelab that hosts this website.">
     <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
     <meta name="theme-color" content="#efdbbf">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
@@ -52,7 +52,7 @@
       <div class="photo-container">
           <div class="photo-shadow"></div>
           <div class="photo">
-              <img src="/assets/images/profile.jpg" alt="Erik Schütze">
+              <img src="/assets/images/profile.jpg" alt="Erik Schütze" width="800" height="800">
           </div>
       </div>
 
@@ -60,22 +60,22 @@
           <div class="content-shadow"></div>
           <div class="content">
               <h2 class="section-heading">About Me</h2>
-              <p>I'm a Site Reliability Engineer at SAP, passionate about cloud infrastructure and automation. With a background in system integration and a love for open source, I bridge the gap between development and operations while embracing agile methodologies. Since I joined the team we are taking on the challenge of improving the quality and stability of the whole product with a measurable and structured approach.</p>
+              <p>I'm a Site Reliability Engineer at SAP, working on cloud infrastructure and automation. I have a background in system integration and a love for open source, and my job sits between development and operations.</p>
+              <p>In practice I look after the infrastructure layer our whole product builds on, and I'm the product owner for the team that carries our on-call rotation. Since I joined, we have been taking on the quality and stability of the whole product, moving it toward SRE as a practice: less manual work, more automation, and numbers to show whether it is actually getting better.</p>
               
               <h3 class="subsection-heading">What I Do</h3>
-              <p>At SAP, I focus on Infrastructure as Data using Crossplane and act as the Product Owner in our Scrum model. I manage cloud-native observability with Grafana, Dynatrace, Elastic and help operate Cloud Foundry instances on BTP. I'm also an Early Talent Ambassador, helping to enable young talent through events and knowledge sessions.</p>
+              <p>Most of my day is Infrastructure as Data. That means declaring infrastructure with Crossplane instead of clicking it into existence, with KRO, Helm and Kustomize handling the layers above it. I run observability with Grafana, Dynatrace and Elastic, and I help operate Cloud Foundry instances on SAP BTP. I'm also an Early Talent Ambassador, which means planning and running events and knowledge sessions for people starting their careers.</p>
 
               <h3 class="subsection-heading">Tech Stack</h3>
-              <p>My toolkit includes Go for cloud-native development, Kubernetes and its plethora of templating tools like Helm, Kustomize and KRO for orchestration, and various observability tools. I'm experienced with both cloud platforms like Azure or SAP BTP as well as traditional Linux server landscapes. My development environment revolves around macOS with tools like VSCode, IntelliJ, tmux, iterm2 and docker for enhanced productivity. In the age of AI, I also use Claude Code for efficiency and help to develop our team's AI agents.</p>
+              <p>Go for cloud-native development, and Kubernetes for nearly everything else. Helm, Kustomize and KRO for templating, Crossplane for infrastructure. I'm at home on Azure and SAP BTP as much as on a plain Linux server. My development environment is macOS with VSCode, IntelliJ, tmux, iterm2 and Docker. I use Claude Code where it saves me time, and I help build our team's AI agents.</p>
 
               <h3 class="subsection-heading">Homelab</h3>
-              <p>I run my own Kubernetes homelab using k3s, complete with GitHub Actions and ArgoCD - it's actually hosting this website! The storage layer is built on Longhorn for replicated NVMe volumes and ZFS-backed NFS for shared workloads, giving me hands-on experience with real storage architecture decisions. Bare-metal networking is handled by MetalLB and Caddy as a reverse proxy with automatic TLS. One of the more interesting nodes is powered by an AMD Vega Frontier, which I use for GPU-accelerated LLM workloads via Ollama. This lets me run and experiment with large language models entirely on bare metal. I also build and maintain my own open source tools: <a href="https://github.com/Erik-Schuetze/hetzner-ddns" target="_blank">hetzner-ddns</a>, a Kubernetes-native DDNS controller for Hetzner Cloud DNS written in Go, and <a href="https://github.com/Erik-Schuetze/banto" target="_blank">banto</a>, a privacy-first zero-backend kanban board — both running in the homelab. This hands-on approach helps me stay current with cloud-native technologies.</p>
+              <p>I run a bare-metal k3s cluster at home that hosts this website. A few N100 mini PCs handle compute, a small NAS handles storage, and the whole thing is driven from Git with ArgoCD. Storage is split in two: Longhorn on local NVMe for anything that needs speed and replication, and ZFS-backed NFS for volumes that several pods read and write at once. Networking is MetalLB plus Caddy for automatic TLS. I wrote the full story down in <a href="/blog/homelab-cluster/">What Runs This Website</a>.</p>
+              <p>I also build my own tools: <a href="https://github.com/Erik-Schuetze/hetzner-ddns" target="_blank">hetzner-ddns</a>, a Kubernetes-native DDNS controller for Hetzner Cloud DNS written in Go, and <a href="https://github.com/Erik-Schuetze/banto" target="_blank">banto</a>, a privacy-first zero-backend kanban board. Both run in the cluster.</p>
 
               <h3 class="subsection-heading">Beyond Code</h3>
-              <p>When I'm not automating infrastructure, you'll find me at the local indoor bouldering gym, on the local tennis court or designing 3D-printable objects in Fusion360.</p>
+              <p>I also love 3D Printing and gaming. When I'm not at a keyboard I'm at the bouldering gym, on a tennis court or in our local cinema.</p>
               
-              <h3 class="subsection-heading">How I Think</h3>
-              <p>I believe in continuous learning through curiosity and sharing my knowledge. My journey from system integration and DevOps to Site Reliability Engineering has taught me that the best systems are built through collaboration and creativity.</p>
           </div>
       </div>
       <div class="link-collection">

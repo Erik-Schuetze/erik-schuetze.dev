@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="A git commit pointing down at a web page.">
+  <title>A git commit pointing down at a web page</title>
+  <rect width="128" height="128" rx="18" fill="#1b4bc6"/>
+
+  <!-- the commit that was pushed -->
+  <line x1="23" y1="42" x2="105" y2="42" stroke="#efdbbf" stroke-width="9" stroke-linecap="round"/>
+  <circle cx="64" cy="42" r="15" fill="#1b4bc6" stroke="#efdbbf" stroke-width="7.5"/>
+
+  <!-- landing on the page -->
+  <line x1="64" y1="62" x2="64" y2="70" stroke="#efdbbf" stroke-width="9" stroke-linecap="round"/>
+  <polygon points="64,84 53,70 75,70" fill="#efdbbf"/>
+
+  <!-- the page being served -->
+  <rect x="20" y="86" width="88" height="32" rx="9" fill="none" stroke="#efdbbf" stroke-width="6"/>
+  <rect x="28" y="93" width="56" height="8" rx="4" fill="#efdbbf"/>
+  <rect x="28" y="104" width="36" height="8" rx="4" fill="#efdbbf"/>
+</svg>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Website Hosting Setup - Erik Schütze</title>
+    <meta name="description" content="One Caddy in front and an nginx plus git-sync Pod per site: how my static sites get deployed, why they ended up split apart, and what broke on the way.">
+    <meta name="keywords" content="Kubernetes, git-sync, nginx, Caddy, static site, deployment, GitOps, homelab, self-hosting">
+    <meta name="author" content="Erik Schütze">
+    <link rel="canonical" href="https://erik-schuetze.dev/blog/git-sync-deploys/">
+    <!-- Social / preview meta -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Erik Schütze">
+    <meta property="og:title" content="My Website Hosting Setup - Erik Schütze">
+    <meta property="og:description" content="One Caddy in front and an nginx plus git-sync Pod per site: how my static sites get deployed, why they ended up split apart, and what broke on the way.">
+    <meta property="og:url" content="https://erik-schuetze.dev/blog/git-sync-deploys/">
+    <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta property="article:published_time" content="2026-09-13">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="My Website Hosting Setup - Erik Schütze">
+    <meta name="twitter:description" content="One Caddy in front and an nginx plus git-sync Pod per site: how my static sites get deployed, why they ended up split apart, and what broke on the way.">
+    <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta name="theme-color" content="#efdbbf">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">My Website Hosting Setup</h2>
+            <p class="subtitle">One Caddy in front, one nginx and git-sync Pod per site, and no build step in the path</p>
+            <div class="post-meta">
+                <a class="back-link" href="/blog/">&larr; Back to Blog</a>
+                <time class="post-date" datetime="2026-09-13">Sep 13, 2026</time>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">What runs my websites</h2>
+                <img class="article-thumbnail" src="/blog/git-sync-deploys/assets/thumb.svg" alt="A git commit pointing down at a web page" width="128" height="128" loading="lazy">
+            </div>
+            <p>
+                Every site I host runs the same way. One <a href="https://caddyserver.com/docs/">Caddy</a> deployment sits in front and terminates TLS. Behind it, each website is defined as its own deployment containing a very simple <a href="https://nginx.org/en/docs/">nginx</a> and a <a href="https://github.com/kubernetes/git-sync">git-sync</a> sidecar that pulls the current website files from its Git repository.
+            </p>
+            <p>
+                That is the shape it has now. It is not the shape I would set out to build if I were starting from scratch, and I would not hand it to anyone as the right way to host a website. It grew one problem at a time, but now it works.
+            </p>
+
+            <h3 class="subsection-heading">One Caddy, one nginx per site</h3>
+            <p>
+                Caddy is the only thing the internet reaches. It holds the certificates, gets them from ACME by being told the hostname and nothing else, and reverse-proxies each one to a service inside the cluster. It runs as two replicas, which is possible because the certificate a caddy instance pulls state is written to a volume both can read. <a href="/blog/homelab-cluster/#networking-on-bare-metal">The cluster post</a> covers that part in more detail.
+            </p>
+            <p>
+                Each website I host is a deployment of its own, with its own service, volume and its own nginx configuration. This split decouples all my websites from each other, so changes to one do not affect the others.
+            </p>
+
+            <h3 class="subsection-heading">Two containers, one volume</h3>
+            <p>
+                The website pod is actually made up of two containers, accessing the same volume that carries the content. 
+            </p>
+            <pre><code># Volume definition for the website pod
+- name: nginx
+  image: nginx
+  volumeMounts:
+  - name: site-content
+    mountPath: /git
+
+- name: git-sync
+  image: registry.k8s.io/git-sync/git-sync
+  volumeMounts:
+  - name: site-content
+    mountPath: /tmp/git
+  env:
+  - name: GITSYNC_REPO
+    value: "https://github.com/Erik-Schuetze/erik-schuetze.dev.git"
+  - name: GITSYNC_ROOT
+    value: "/tmp/git"
+  - name: GITSYNC_DEPTH
+    value: "1"
+  - name: GITSYNC_WAIT
+    value: "30"</code></pre>
+            <p>
+                The git-sync container clones the repository into its root and pulls it on a timer. Inside the root it keeps one working directory per commit and a symlink named after the repository, pointing at whichever checkout is current. nginx takes the whole volume rather than a path inside it, so every request walks that symlink and lands on the version that is live at that moment.
+            </p>
+            <p>
+                A new commit is fetched into a fresh directory and the symlink is moved, so a reader never gets a half-written page. That part of the design is the reason I like it.
+            </p>
+            <p>
+                The clone is shallow and the pull interval is thirty seconds. One is git-sync's default and the other has never given me a reason to change it. Private repositories need a token, which comes from a Secret in the same namespace.
+            </p>
+
+            <h3 class="subsection-heading">Splitting the sites apart</h3>
+            <p>
+                The first version of this website was a Caddy container with the content baked into it, served by <code>file_server</code>. Caddy was the whole choice of web server, made because certbot inside <a href="https://kubernetes.io/docs/home/">Kubernetes</a> looked like a lot of work compared with a program that obtains its own certificates. One container, one site, no volume, and nothing to keep in sync.
+            </p>
+            <p>
+                A second website came along later, and I found out that nginx could run behind Caddy and serve files out of a volume. So the second site became an nginx Pod with Caddy proxying to it.
+            </p>
+            <p>
+                Caddy and every site were still one Deployment. Updating the content of one site meant restarting all of them, and restarting Caddy sends it back to the certificate authority. Do that often enough and you run into the <a href="https://letsencrypt.org/docs/rate-limits/">rate limits</a> on how many certificates you may request, which is the point where TLS stops working for everything at once. That is what pushed the sites apart, and it is the reason a content update no longer touches the proxy.
+            </p>
+            <p>
+                Every new service gets a subdomain of this domain instead of a domain of its own, so there is one set of names to keep certificates for.
+            </p>
+            <p>
+                The Caddy image is still in the site repository. Nothing in the cluster pulls it any more, and the workflow that builds and pushes it on every push to <code>main</code> still runs. The image is not idle, though: the same repository has a compose file that builds it with a development Caddyfile, and that is how the site runs on my laptop.
+            </p>
+
+            <h3 class="subsection-heading">What broke</h3>
+            <p>
+                For a long while, merging anything to any sites main branch produced 500s. The nginx container and the git-sync sidecar both mount the same volume read-write, and on <a href="https://longhorn.io/docs/">Longhorn</a> that pairing kept failing. <a href="/blog/homelab-storage/#what-longhorn-is">The storage post</a> goes into why Longhorn's shared mode behaves the way it does.
+            </p>
+            <p>
+                I knew a merge would break it, so my deploy procedure was to keep the <a href="https://argo-cd.readthedocs.io/en/stable/">Argo CD</a> UI open and delete the site Deployment after each push, so it came back with a fresh mount. It only cost a few seconds, but it was also a manual step inside a setup whose entire purpose was not to need one.
+            </p>
+            <p>
+                Moving the volume off Longhorn and onto <a href="https://wiki.archlinux.org/title/NFS">NFS</a> fixed the problem.
+            </p>
+            <p>
+                Errors came back later at a lower rate, whenever git-sync rotated the working directory underneath a running nginx. The mount is different now: nginx takes the whole volume instead of a path inside it, and reaches the content through git-sync's symlink. I cannot tell you which of those two details did the fixing, and neither has been touched since the errors stopped.
+            </p>
+
+            <h3 class="subsection-heading">Why a PersistentVolumeClaim</h3>
+            <p>
+                An <code>emptyDir</code> would be the cheaper answer, and I would not argue that deploying a dedicated volume is obviously the right one. What I wanted was storage holding the content currently being served, so it can be swapped underneath a running nginx rather than nginx having to be replaced to carry new files.
+            </p>
+            <p>
+                A Pod that has just started serves the files that are on the volume already while its first pull runs. With an empty volume the site would serve nothing until the pull finished, which is a short window acceptable for a homelab. But with my setup redeploying or restarting pods only causes a very brief downtime for the site.
+            </p>
+            <p>
+                I am not sure this is the best way to do it, as I am not a full time web developer. But my architecture grew over time, and nothing since has made me go back and revisit it.
+            </p>
+
+            <h3 class="subsection-heading">When this is the wrong pattern</h3>
+            <p>
+                This is a narrow pattern. It assumes the site is a folder of files that can be served as they are, with no step between the commit and the page.
+            </p>
+            <p>
+                The boundary is a build step. If the content has to be compiled before it is served, that belongs in a pipeline producing an artifact: the artifact is what you review, and it is the thing you roll back to.
+            </p>
+            <p>
+                None of that applies here. This site is plain HTML and CSS that I write and commit directly, so there is nothing to build and the repository is the artifact. If that changed, I would be building a pipeline instead.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

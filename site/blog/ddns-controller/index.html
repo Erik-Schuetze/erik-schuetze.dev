@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic DNS, Kubernetes-native - Erik Schütze</title>
+    <meta name="description" content="Why I run dynamic DNS inside my cluster instead of on a machine underneath it: a small Go program, the ConfigMap it reads, and the API move that made me rewrite the client.">
+    <meta name="keywords" content="Kubernetes, Go, dynamic DNS, Hetzner, ConfigMap, Deployment, homelab, self-hosting">
+    <meta name="author" content="Erik Schütze">
+    <link rel="canonical" href="https://erik-schuetze.dev/blog/ddns-controller/">
+    <!-- Social / preview meta -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Erik Schütze">
+    <meta property="og:title" content="Dynamic DNS, Kubernetes-native - Erik Schütze">
+    <meta property="og:description" content="Why I run dynamic DNS inside my cluster instead of on a machine underneath it: a small Go program, the ConfigMap it reads, and the API move that made me rewrite the client.">
+    <meta property="og:url" content="https://erik-schuetze.dev/blog/ddns-controller/">
+    <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta property="article:published_time" content="2026-09-13">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Dynamic DNS, Kubernetes-native - Erik Schütze">
+    <meta name="twitter:description" content="Why I run dynamic DNS inside my cluster instead of on a machine underneath it: a small Go program, the ConfigMap it reads, and the API move that made me rewrite the client.">
+    <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta name="theme-color" content="#efdbbf">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">Dynamic DNS, Kubernetes-native</h2>
+            <p class="subtitle">A small pod that keeps my records pointing at my router</p>
+            <div class="post-meta">
+                <a class="back-link" href="/blog/">&larr; Back to Blog</a>
+                <time class="post-date" datetime="2026-09-13">Sep 13, 2026</time>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">A home address that keeps changing</h2>
+                <img class="article-thumbnail" src="/blog/ddns-controller/assets/thumb.svg" alt="A cloud pointing down at a DNS record" width="128" height="128" loading="lazy">
+            </div>
+            <p>
+                Hosting a website at home takes a few things, and one of them is an address. You buy a domain, and that domain has to point at wherever the machine is. The mapping between a name and an address is <a href="https://en.wikipedia.org/wiki/Domain_Name_System" target="_blank">DNS</a>: a record stored somewhere public that tells everyone where to look when they ask for that name.
+            </p>
+            <p>
+                Home connections do not keep one address. My provider reassigns mine, and the moment it does, every name pointing at the old one is wrong.
+            </p>
+            <p>
+                <a href="https://en.wikipedia.org/wiki/Dynamic_DNS" target="_blank">Dynamic DNS</a> is the usual fix: a small tool asks the outside world what your address currently is, and tells your DNS provider when it changes. On Linux that is handled for almost every provider, and I ran those tools on my older homeservers for years.
+            </p>
+            <p>
+                What I could not find was one that runs the way the rest of my infrastructure runs, so I wrote it.
+            </p>
+            <p>
+                hetzner-ddns is a small Go program that runs as a Deployment in my cluster, takes its configuration from a <a href="https://kubernetes.io/docs/concepts/configuration/configmap/" target="_blank">ConfigMap</a>, and keeps the A records I list pointed at whatever address my router currently has. There are about 640 lines of Go in it. Most of it was written with AI assistance over about a day, with small fixes two days later.
+            </p>
+            <p>
+                The only time it comes to mind is when DNS is wrong and I go looking for a reason.
+            </p>
+
+            <h3 class="subsection-heading">What it does on every pass</h3>
+            <p>
+                A pass starts by finding out what the current address is. It asks three services in order and takes the first one that answers with a 200:
+            </p>
+            <pre><code>var ipCheckServices = []string{
+    "https://checkip.amazonaws.com",
+    "https://api.ipify.org",
+    "https://icanhazip.com",
+}</code></pre>
+            <p>
+                If one of them is slow or answers with an error, the next one is tried, so a single bad answer does not stop the update.
+            </p>
+            <p>
+                The address is then compared against every record listed in the config. A record that does not exist gets created. A record holding the wrong address gets corrected. A record whose TTL differs from the file gets its TTL changed. Everything already correct is left alone until the next pass.
+            </p>
+            <p>
+                It reconciles once when it starts and then on a timer, which I run at 15 minutes. A second ticker re-reads the configuration every minute, so changing that interval in the ConfigMap reloads the file and resets the main ticker to the new value. The pod is never replaced for a config change.
+            </p>
+
+            <h3 class="subsection-heading">What the config looks like</h3>
+            <p>
+                The whole interface is one YAML file: how often to check, which zones to keep current, and which names inside them should follow the address.
+            </p>
+            <pre><code>params:
+  refresh_interval: 15
+hetzner:
+  zones:
+    - zone_name: "example.com"
+      records:
+        - name: "@"
+          type: "A"
+          ttl: 3600
+        - name: "www"
+          type: "A"
+          ttl: 3600
+        - name: "mail"
+          type: "A"
+          ttl: 3600</code></pre>
+            <p>
+                Both levels are lists, so one Deployment covers as many zones and names as I want rather than one process per hostname. <code>@</code> is the root, which means the zone itself follows the address too.
+            </p>
+            <p>
+                Each record carries its own TTL, so how long a stale answer can live in a resolver cache is a number in this file rather than something I would fix later at the provider.
+            </p>
+
+            <h3 class="subsection-heading">Why it runs in the cluster</h3>
+            <p>
+                The configuration is a ConfigMap in the same Git repository as the rest of my cluster. Changing a record is a commit, the commit message says why, and the history of my DNS sits next to the manifests it belongs to. Nothing gets typed into a file on a machine by hand.
+            </p>
+            <p>
+                The other reason is that my three nodes are identical. Admin tooling that lives on one of them makes that node more important and more risky than the other two, and leaves me remembering which machine I put it on. As a Deployment it can run anywhere, and losing any single node does not take my DNS updates with it.
+            </p>
+            <p>
+                In short I did not want a DDNS client in the layer underneath <a href="https://kubernetes.io/docs/concepts/overview/" target="_blank">Kubernetes</a>, hidden in a Linux filesystem I rarely open, making my cluster nodes asymmetric in importance.
+            </p>
+
+            <h3 class="subsection-heading">The migration that made me rewrite the client</h3>
+            <p>
+                Hetzner moved DNS onto a new Cloud API, and it is not the same surface with a different URL. Zones have to be migrated to the new console first, the identifiers for records change, and the token becomes a Cloud token instead of the old DNS one. 
+            </p>
+            <p>
+                There was a deadline and not much time, so I handed the migration guide and the announcement to an AI assistant and followed the steps it gave me. For a homelab I think that is a fair way to get through an API move.
+            </p>
+            <p>
+                I rewrote the client against the new API instead of carrying both. As far as I can tell I am the only one running this tool, and anyone still on the legacy path could have stayed on the older version, but Hetzner's cutoff moved the zones either way, so a pod on the old client would have stopped working regardless.
+            </p>
+
+            <h3 class="subsection-heading">What it does not touch</h3>
+            <p>
+                The program only ever writes the records its config mentions, and there is no delete path in it at all. Take a name out of the file and it stops being looked after, while the record stays in the zone exactly as it was.
+            </p>
+            <p>
+                There is no state either: no database, nothing to back up, and nothing that can drift away from the file. If the pod is replaced, it reads the same configuration and converges on the same records.
+            </p>
+            <p>
+                There is also no monitoring, no metrics and no stats. It keeps records current and does nothing else.
+            </p>
+            <p>
+                The code is on <a href="https://github.com/Erik-Schuetze/hetzner-ddns" target="_blank">GitHub</a> under the MIT license. There are no contributors, and it is ready for anyone who finds it and needs the same thing.
+            </p>
+
+            <h3 class="subsection-heading">What I would change</h3>
+            <p>
+                Declaring records in a file and reconciling them against a provider is what <a href="https://docs.crossplane.io/" target="_blank">Crossplane</a> does for cloud resources in general, and a Hetzner DNS provider for it, either on its own or as a feature inside an existing provider, is a better home for this configuration than a small program of my own. 
+            </p>
+            <p>
+                While researching for this article I found there is an existing <a href="https://github.com/miaits/provider-hetzner" target="_blank">Hetzner Provider for Crossplane</a> so I might just add DNS management as a feature there in the future.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

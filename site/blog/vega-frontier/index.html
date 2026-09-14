@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vega Frontier AI Server - Erik Schütze</title>
-    <meta name="description" content="Building a silent 14B AI inference server in K3s. How I re-engineered a 2017 AMD Vega Frontier Edition into a completely silent, highly efficient Kubernetes-native AI inference node running Ollama.">
+    <title>Taming the Vega Frontier Edition - Erik Schütze</title>
+    <meta name="description" content="Building a silent 14B AI inference server in K3s. How I turned a 2017 AMD Vega Frontier Edition, a card famous for drawing 250W and sounding like a jet engine, into a quiet Ollama node in my K3s cluster.">
     <meta name="keywords" content="AMD Vega Frontier, AI Server, Inference, Ollama, K3s, Kubernetes, LLM, GPU, DevOps, Hardware Modification">
     <meta name="author" content="Erik Schütze">
     <link rel="canonical" href="https://erik-schuetze.dev/blog/vega-frontier/">
     <!-- Social / preview meta -->
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Erik Schütze">
-    <meta property="og:title" content="Vega Frontier AI Server - Erik Schütze">
-    <meta property="og:description" content="Building a silent 14B AI inference server in K3s. How I re-engineered a 2017 AMD Vega Frontier Edition into a completely silent, highly efficient Kubernetes-native AI inference node running Ollama.">
+    <meta property="og:title" content="Taming the Vega Frontier Edition - Erik Schütze">
+    <meta property="og:description" content="Building a silent 14B AI inference server in K3s. How I turned a 2017 AMD Vega Frontier Edition, a card famous for drawing 250W and sounding like a jet engine, into a quiet Ollama node in my K3s cluster.">
     <meta property="og:url" content="https://erik-schuetze.dev/blog/vega-frontier/">
     <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
-    <meta property="og:article:published_time" content="2026-05-11">
+    <meta property="article:published_time" content="2026-05-11">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Vega Frontier AI Server - Erik Schütze">
-    <meta name="twitter:description" content="Building a silent 14B AI inference server in K3s. How I re-engineered a 2017 AMD Vega Frontier Edition into a completely silent, highly efficient Kubernetes-native AI inference node running Ollama.">
+    <meta name="twitter:title" content="Taming the Vega Frontier Edition - Erik Schütze">
+    <meta name="twitter:description" content="Building a silent 14B AI inference server in K3s. How I turned a 2017 AMD Vega Frontier Edition, a card famous for drawing 250W and sounding like a jet engine, into a quiet Ollama node in my K3s cluster.">
     <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
     <meta name="theme-color" content="#efdbbf">
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
@@ -66,20 +66,27 @@
         <div class="content-shadow"></div>
         <div class="content">
             <div class="article-heading">
-                <h2 class="section-heading">Re-engineering a legendary hot and loud graphics card into a silent AI node</h2>
-                <img class="article-thumbnail" src="/blog/vega-frontier/assets/vega-logo.webp" alt="Vega Frontier Edition">
+                <h2 class="section-heading">Turning a hot and loud workstation card into a silent AI node</h2>
+                <img class="article-thumbnail" src="/blog/vega-frontier/assets/vega-logo.webp" alt="Vega Frontier Edition" width="256" height="256" loading="lazy">
             </div>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/vega-frontier/assets/vega-framed.jpg" alt="Vega framed as wall art" width="1076" height="1600" loading="lazy">
+                </div>
+                <figcaption>Update: this card has since been retired and is no longer running. Everything below is how it ran while it was still part of the cluster.</figcaption>
+            </figure>
             <p>
                 The AMD Vega Frontier Edition is a legacy workstation card from 2017. It is similar to the Vega 64, but it features 16GB of HBM2 VRAM, as opposed to 8GB on the regular Vega cards.
             </p>
             <p>
-                These cards were notorious for being incredibly power-hungry, running hot, and sounding like a jet engine under load. However it was also incredibly good for compute workloads and features a 2048-bit memory bus, which is perfect for local AI experiments.
+                These cards ran hot, drew a lot of power, and sounded like a jet engine under load. However, they were also very good for compute workloads, and the 2048-bit memory bus works well for local AI experiments.
             </p>
             <p>
-                Large Language Model (LLM) inference, specifically single-user generation at 4-bit quantization, is almost entirely bound by memory bandwidth rather than raw compute logic. The Vega's 483 GB/s memory bandwidth means it theoretically has the pipeline to process 14-billion parameter models effectively. The challenge was bypassing the original thermal and power inefficiencies to build a completely silent, K3s-native inference server for my home office.
+                Large Language Model (LLM) inference, specifically single-user generation at 4-bit quantization, is almost entirely bound by memory bandwidth rather than raw compute logic. The Vega's 483 GB/s memory bandwidth means it theoretically has the pipeline to process 14-billion parameter models effectively. Getting a completely silent, K3s-native inference server for my home office meant working around the original thermal and power inefficiencies.
             </p>
             <p>
-                Here is the engineering breakdown of how I achieved a sustained <strong>15-17 tokens/s</strong> on <code>qwen2.5:14b-instruct-q4_K_M</code> while keeping the blower fan near-silent.
+                Getting there meant capping the power limit, replacing the thermal pads, and writing a fan controller. The result was a sustained <strong>15-17 tokens/s</strong> on <code>qwen2.5:14b-instruct-q4_K_M</code> with the blower fan near-silent.
             </p>
 
             <h3 class="subsection-heading">Architecture: Vega 10 Silicon</h3>
@@ -89,12 +96,12 @@
             <figure class="blog-figure">
                 <div class="blog-figure-inner">
                     <div class="blog-figure-shadow"></div>
-                    <img src="/blog/vega-frontier/assets/die-shot.jpeg" alt="Vega 10 die shot">
+                    <img src="/blog/vega-frontier/assets/die-shot.jpeg" alt="Vega 10 die shot" width="764" height="772" loading="lazy">
                 </div>
-                <figcaption>Vega 10 die — the two HBM2 stacks sit directly adjacent to the GPU logic die on a shared silicon interposer, connected via a 2048-bit wide memory interface.</figcaption>
+                <figcaption>Vega 10 die. The two HBM2 stacks sit directly adjacent to the GPU logic die on a shared silicon interposer, connected via a 2048-bit wide memory interface.</figcaption>
             </figure>
             <p>
-                The standout feature visible in the die shot is the <strong>HBM2 memory subsystem</strong>. Rather than GDDR memory mounted on the PCB, two HBM2 stacks are placed on the same package interposer as the GPU die itself. Each stack provides 8 GB of VRAM, totalling 16 GB and <strong>483 GB/s</strong> — roughly four times the bandwidth of contemporary GDDR5 cards at a fraction of the PCB area. This is what makes the Vega Frontier Edition relevant for LLM inference in 2026 despite its age.
+                The interesting part of the die shot is the <strong>HBM2 memory subsystem</strong>. Rather than GDDR memory mounted on the PCB, two HBM2 stacks are placed on the same package interposer as the GPU die itself. Each stack provides 8 GB of VRAM, totalling 16 GB and <strong>483 GB/s</strong>, roughly four times the bandwidth of contemporary GDDR5 cards at a fraction of the PCB area. That bandwidth is why a 2017 card was still worth running for inference.
             </p>
 
             <h3 class="subsection-heading">The Build: Card Inside the Case</h3>
@@ -104,7 +111,7 @@
             <figure class="blog-figure">
                 <div class="blog-figure-inner">
                     <div class="blog-figure-shadow"></div>
-                    <img src="/blog/vega-frontier/assets/server.jpeg" alt="Vega Frontier Edition installed in the server case">
+                    <img src="/blog/vega-frontier/assets/server.jpeg" alt="Vega Frontier Edition installed in the server case" width="773" height="429" loading="lazy">
                 </div>
                 <figcaption>The Vega Frontier Edition seated in one of my K3s nodes. The blower shroud exhausts entirely through the back, making it well-suited for enclosed, noise-sensitive environments.</figcaption>
             </figure>
@@ -159,9 +166,9 @@
             </p>
             <pre><code>echo 100000000 > /sys/class/drm/card0/device/hwmon/hwmon1/power1_cap</code></pre>
 
-            <h3 class="subsection-heading">Hardware Preparation & Acoustic Mapping</h3>
+            <h3 class="subsection-heading">Hardware Preparation &amp; Acoustic Mapping</h3>
             <p>
-                To ensure thermal transfer was optimal under sustained loads, I replaced the VRM thermal pads and installed a brand-new blower fan. The bearing in the new fan had tighter tolerances, which completely changed the acoustic profile.
+                To ensure thermal transfer was optimal under sustained loads, I replaced the dried-up VRM thermal pads and paste, and installed a brand-new blower fan. The bearing in the new fan had tighter tolerances, which completely changed the acoustic profile.
             </p>
             <p>
                 Instead of relying on percentages, I mapped the exact tachometer RPM to the PWM values: (PWM: 0-255)
@@ -238,46 +245,43 @@ done</code></pre>
 
             <h3 class="subsection-heading">Wiring It Into K3s</h3>
             <p>
-                The fan controller runs as a <code>systemd</code> service on the bare-metal node itself. Everything above that lives inside Kubernetes — self-contained by design. If the GPU node disappears from the cluster, Ollama and Open WebUI go with it. If it comes back, they reschedule automatically.
+                The fan controller runs as a <code>systemd</code> service on the bare-metal node itself. Everything above that lives inside Kubernetes. If the GPU node disappears from the cluster, Ollama and Open WebUI go with it. If it comes back, they reschedule automatically.
             </p>
             <p>
-                The hard prerequisite is the <strong>AMD GPU driver on the host</strong>. Without it, nothing downstream works — no <code>/dev/kfd</code>, no <code>sysfs</code> hwmon entries, no GPU resource visible to Kubernetes. There is no way around this step.
+                The hard prerequisite is the <strong>AMD GPU driver on the host</strong>. Without it, nothing downstream works: no <code>/dev/kfd</code>, no <code>sysfs</code> hwmon entries, no GPU resource visible to Kubernetes. There is no way around this step.
             </p>
             <p>
-                Once the driver is in place, the <strong>AMD device plugin</strong> runs as a DaemonSet across every <code>amd64</code> node. It registers the physical GPU as a schedulable <code>amd.com/gpu</code> resource in the Kubelet and labels the node with hardware facts — VRAM size, CU count, product name — so you can target specific hardware without hardcoding hostnames.
+                Once the driver is in place, the <strong>AMD device plugin</strong> runs as a DaemonSet across every <code>amd64</code> node. It registers the physical GPU as a schedulable <code>amd.com/gpu</code> resource in the Kubelet and labels the node with hardware facts (VRAM size, CU count, product name) so you can target specific hardware without hardcoding hostnames.
             </p>
             <p>
                 The Vega node is tainted with <code>gpu: amd-vega</code>, so nothing lands on it unless it explicitly asks to. The Ollama deployment carries the matching toleration, a <code>nodeSelector</code> pinning it to the <code>vega</code> host, and a resource limit of <code>amd.com/gpu: 1</code>. If the driver isn't installed or the device plugin hasn't registered it yet, the pod simply stays <code>Pending</code>. No GPU, no schedule.
             </p>
-            <p>A few runtime settings needed careful thought:</p>
+            <p>A few runtime settings I had to get right:</p>
             <ul>
-                <li><strong>Vulkan over ROCm/HIP</strong> — Vega predates the ROCm versions that support it cleanly. Vulkan just works.</li>
-                <li><strong>Flash Attention disabled</strong> — the Vulkan backend doesn't support it reliably on this silicon.</li>
-                <li><strong>KV cache at q8_0</strong> — quantized to keep memory pressure manageable within the 16GB HBM2 budget.</li>
-                <li><strong>KEEP_ALIVE: -1</strong> — model stays permanently resident in VRAM, no reload penalty between requests.</li>
+                <li><strong>Vulkan over ROCm/HIP</strong>: Vega predates the ROCm versions that support it cleanly, and Vulkan just works.</li>
+                <li><strong>Flash Attention disabled</strong>: the Vulkan backend doesn't support it reliably on this silicon.</li>
+                <li><strong>KV cache at q8_0</strong>: quantized to keep memory pressure manageable within the 16GB HBM2 budget.</li>
+                <li><strong>KEEP_ALIVE: -1</strong>: the model stays permanently resident in VRAM, with no reload penalty between requests.</li>
             </ul>
             <p>
                 On first startup the deployment pulls the model, bakes it into a custom <code>vega-qwen</code> modelfile with a capped 8192-token context window, and fires a dummy prompt to pre-warm the weights before the readiness probe ever passes.
             </p>
             <p>
-                Models live on a <code>hostPath</code> volume at <code>/opt/ollama/models</code> and survive pod restarts without re-downloading. Open WebUI is a separate deployment pointing at the Ollama service — decoupled, and only scheduled once Ollama is healthy.
+                Models live on a <code>hostPath</code> volume at <code>/opt/ollama/models</code> and survive pod restarts without re-downloading. Open WebUI is a separate deployment pointing at the Ollama service, and it is only scheduled once Ollama is healthy.
             </p>
 
             <h3 class="subsection-heading">The Results</h3>
             <p>
-                Under a sustained benchmark designed to heat-soak the cooler in a closed cupboard, the system settled into a perfect thermal equilibrium:
+                Under a sustained benchmark that heat-soaked the cooler in a closed cupboard, the system settled into an equilibrium:
             </p>
             <ul>
                 <li><strong>Load Power:</strong> 100.00 W</li>
-                <li><strong>Memory Temp:</strong> 90.0°C — pinned with a 5°C buffer to the HBM2 limit</li>
+                <li><strong>Memory Temp:</strong> 90.0°C, pinned with a 5°C buffer to the HBM2 limit</li>
                 <li><strong>Fan Speed:</strong> 1425 RPM (PWM 64)</li>
                 <li><strong>Throughput:</strong> 15.58 Tokens/s</li>
             </ul>
             <p>
                 Once inference finishes, P-states drop the card to <strong>5W</strong> and the fan returns to an inaudible 693 RPM.
-            </p>
-            <p class="closing">
-                By tuning the power limit, fan curve and replacing the dried-up thermal pads and paste, this legacy workstation GPU has become a highly capable, silent node in my K3s cluster.
             </p>
         </div>
     </div>
