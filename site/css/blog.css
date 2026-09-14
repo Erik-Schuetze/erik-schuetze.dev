@@ -49,6 +49,7 @@
 .content p {
     font-size: clamp(0.8rem, 1.5vw, 1.2rem);
     line-height: 1.4;
+    margin-bottom: 6pt;
 }
 
 .content a {
@@ -79,6 +80,22 @@
     color: var(--text-color);
     text-decoration: none;
     transition: color 0.3s ease;
+}
+
+/* Blog cards: the heading link is stretched over the card, so the whole card is a
+   tap target without nesting the inner links inside another anchor. inset:0 resolves
+   against .content, which is the cream card box. */
+.content-container h2.section-heading > a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+}
+
+/* ... which means links inside the card need to sit above that overlay */
+.content-container .content p a {
+    position: relative;
+    z-index: 2;
 }
 
 .title {
@@ -153,9 +170,13 @@
     display: none;
 }
 
+/* The img tags carry width and height attributes so nothing reflows while images
+   load. Without this rule the attribute height is applied as a pixel height and
+   fights width: 100%. */
 .blog-figure img {
     position: relative;
     width: 100%;
+    height: auto;
     display: block;
     box-shadow: 0 0 0 2px var(--accent-color);
     z-index: 2;

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bantō - Erik Schütze</title>
+    <title>Bantō - Minimal Kanban - Erik Schütze</title>
     <meta name="description" content="Bantō - Minimal Kanban. A zero-dependency kanban board that runs entirely in the browser using HTML, CSS, and vanilla JavaScript.">
     <meta name="keywords" content="Bantō, Kanban, Kanban Board, JavaScript, HTML, CSS, Zero Dependency, Open Source, Homelab">
     <meta name="author" content="Erik Schütze">
@@ -11,13 +11,13 @@
     <!-- Social / preview meta -->
     <meta property="og:type" content="article">
     <meta property="og:site_name" content="Erik Schütze">
-    <meta property="og:title" content="Bantō - Erik Schütze">
+    <meta property="og:title" content="Bantō - Minimal Kanban - Erik Schütze">
     <meta property="og:description" content="Bantō - Minimal Kanban. A zero-dependency kanban board that runs entirely in the browser using HTML, CSS, and vanilla JavaScript.">
     <meta property="og:url" content="https://erik-schuetze.dev/blog/banto/">
     <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
-    <meta property="og:article:published_time" content="2026-02-21">
+    <meta property="article:published_time" content="2026-02-21">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Bantō - Erik Schütze">
+    <meta name="twitter:title" content="Bantō - Minimal Kanban - Erik Schütze">
     <meta name="twitter:description" content="Bantō - Minimal Kanban. A zero-dependency kanban board that runs entirely in the browser using HTML, CSS, and vanilla JavaScript.">
     <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
     <meta name="theme-color" content="#efdbbf">
@@ -67,7 +67,7 @@
         <div class="content">
           <div class="article-heading">
             <h2 class="section-heading">I built a kanban board</h2>
-            <img class="article-thumbnail" src="/blog/banto/assets/banto.webp" alt="Banto Logo">
+            <img class="article-thumbnail" src="/blog/banto/assets/banto.webp" alt="Banto Logo" width="174" height="174" loading="lazy">
           </div>
           <p>
             Bantō is a minimal kanban board that runs entirely in your browser. No account, no server,
@@ -76,7 +76,7 @@
           </p>
           <p>
             I had this idea sitting in my head for months. Most task management tools out there are
-            either way too heavy — think Jira, Notion, Linear — or they require you to create an account
+            either way too heavy (think Jira, Notion, Linear) or they require you to create an account
             and sync everything through the cloud. I just wanted a simple board for my homelab projects
             that does its job without getting in the way.
           </p>
@@ -88,13 +88,13 @@
 
           <h3 class="subsection-heading">Keep it simple</h3>
           <p>
-            There is a reason pen and paper still works so well — everyone knows exactly how it behaves.
+            There is a reason pen and paper still works so well: everyone knows exactly how it behaves.
             Software can surprise you in annoying ways, and those small moments of confusion add up.
             I heard someone put it really well in a podcast: most apps are packed with features and take
             forever to learn, when all you needed was a quick note on a piece of paper.
           </p>
           <p>
-            That idea stuck with me. I also read a book about Dieter Rams and the Braun design philosophy —
+            That idea stuck with me. I also read a book about Dieter Rams and the Braun design philosophy,
             the whole "less but better" approach. Bantō should feel as obvious and predictable as writing
             things down by hand. Click to edit, drag to move, done. No modal dialogs, no settings pages,
             no learning curve.
@@ -102,7 +102,7 @@
 
           <h3 class="subsection-heading">Why the name?</h3>
           <p>
-            Bantō (番頭) is a Japanese word for a manager or head clerk — someone who keeps things in order
+            Bantō (番頭) is a Japanese word for a manager or head clerk, someone who keeps things in order
             quietly and reliably. It also nods to bento boxes and kanban boards: bento boxes are neat, tidy,
             and practical, and kanban is all about visible, simple flow. The name is meant to capture both:
             organized, lightweight, and calm.
@@ -111,31 +111,31 @@
           <h3 class="subsection-heading">What it can do</h3>
           <ul class="banto-list">
             <li>Create, rename, reorder, and delete columns</li>
-            <li>Add cards with a title and description — inline editing everywhere</li>
+            <li>Add cards with a title and description, with inline editing everywhere</li>
             <li>Drag and drop cards and columns freely</li>
             <li>Mark cards as complete</li>
             <li>Full undo and redo that persists across sessions</li>
             <li>Export and import your board as JSON</li>
             <li>Keyboard shortcuts for common actions</li>
             <li>Touch and mobile support with long-press drag</li>
-            <li>Auto-save — there is no save button, it just works</li>
+            <li>Auto-save. There is no save button, it just works.</li>
           </ul>
 
           <h3 class="subsection-heading">Design</h3>
           <p>
-            The board uses a warm, papery aesthetic — a beige parchment background with a subtle blue grid
+            The board uses a warm, papery aesthetic: a beige parchment background with a subtle blue grid
             texture, cobalt blue accents, and cards with a flat geometric drop shadow. I wanted it to feel
             like a productive workspace, not a corporate dashboard.
           </p>
           <p>
             Action buttons on cards stay hidden until you hover over them, keeping the board visually clean.
             On mobile, everything adapts: columns scroll horizontally, and buttons are always visible since
-            there is no hover state. Small details, but they make a difference.
+            there is no hover state.
           </p>
 
           <h3 class="subsection-heading">Self-hostable</h3>
           <p>
-            Bantō is a static site — no build step, no server-side processing. You can drop it on any web server,
+            Bantō is a static site: no build step, no server-side processing. You can drop it on any web server,
             or run it with a single <code>docker-compose up</code>. I run mine on my own hardware in a K3s
             cluster, served by Caddy with automatic HTTPS.
           </p>
@@ -143,7 +143,7 @@
           <h3 class="subsection-heading">Try it</h3>
           <p>
             Bantō is live at <a href="https://banto.erik-schuetze.dev" target="_blank">banto.erik-schuetze.dev</a>.
-            Everything stays in your browser — no data ever leaves your machine. The source code is MIT-licensed
+            Everything stays in your browser. No data ever leaves your machine. The source code is MIT-licensed
             and available on <a href="https://github.com/Erik-Schuetze/banto" target="_blank">GitHub</a>.
           </p>
         </div>

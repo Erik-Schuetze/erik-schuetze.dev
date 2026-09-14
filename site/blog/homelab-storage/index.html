@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running ZFS and Longhorn Side by Side - Erik Schütze</title>
+    <meta name="description" content="My homelab runs two storage systems: Longhorn on the cluster nodes, and ZFS over NFS on a NAS. Why the websites moved to NFS, what a refunded SSD cost, and where the backups go.">
+    <meta name="keywords" content="ZFS, Longhorn, Kubernetes, storage, raidz1, NFS, homelab, self-hosting, backups">
+    <meta name="author" content="Erik Schütze">
+    <link rel="canonical" href="https://erik-schuetze.dev/blog/homelab-storage/">
+    <!-- Social / preview meta -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Erik Schütze">
+    <meta property="og:title" content="Running ZFS and Longhorn Side by Side - Erik Schütze">
+    <meta property="og:description" content="My homelab runs two storage systems: Longhorn on the cluster nodes, and ZFS over NFS on a NAS. Why the websites moved to NFS, what a refunded SSD cost, and where the backups go.">
+    <meta property="og:url" content="https://erik-schuetze.dev/blog/homelab-storage/">
+    <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta property="article:published_time" content="2026-09-13">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Running ZFS and Longhorn Side by Side - Erik Schütze">
+    <meta name="twitter:description" content="My homelab runs two storage systems: Longhorn on the cluster nodes, and ZFS over NFS on a NAS. Why the websites moved to NFS, what a refunded SSD cost, and where the backups go.">
+    <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta name="theme-color" content="#efdbbf">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">Running ZFS and Longhorn Side by Side</h2>
+            <p class="subtitle">Longhorn on the cluster nodes, ZFS on a NAS, and what decides between them</p>
+            <div class="post-meta">
+                <a class="back-link" href="/blog/">&larr; Back to Blog</a>
+                <time class="post-date" datetime="2026-09-13">Sep 13, 2026</time>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">Two storage tiers for one cluster</h2>
+                <img class="article-thumbnail" src="/blog/homelab-storage/assets/nas-thumb.jpg" alt="The storage host with its case open" width="256" height="256" loading="lazy">
+            </div>
+            <p>
+                My cluster has two storage systems, and the split happened gradually rather than by design.
+            </p>
+            <p>
+                <a href="https://longhorn.io/docs/">Longhorn</a> came first, because storage that replicates itself across machines was too interesting not to try, and once the model clicked, managing volumes was fun.
+            </p>
+            <p>
+                The NAS came second. I wanted network backups for the MacBooks in the house, and somewhere to put the large experiments that never fit inside three small machines. It runs ZFS and hands its pool to the cluster over <a href="https://wiki.archlinux.org/title/NFS">NFS</a>, the network filesystem Unix machines have used to share directories for decades.
+            </p>
+            <p>
+                What pushed workloads across was this website. The <a href="https://github.com/kubernetes/git-sync">git-sync</a> and <a href="https://nginx.org/en/docs/">nginx</a> containers that serve it both mount the same volume, and that pairing kept running into read-write-many bugs on Longhorn.
+            </p>
+            <p>
+                In practice: anything that wants speed or matters to me lives on Longhorn, and the Minecraft server is the clearest example. Anything less important lives on NFS. Anything genuinely large goes to NFS regardless of how fast it wants to be, because the pool is the only place with room.
+            </p>
+            <p>
+                The two systems also fail in different directions. Longhorn keeps its copies on the cluster nodes, so it goes down and comes back with them, and replication covers a single node going away. The NAS is one machine: it can be down while the cluster is perfectly healthy, and everything on the NFS tier goes down with it.
+            </p>
+
+            <h3 class="subsection-heading" id="what-longhorn-is">What Longhorn is</h3>
+            <p>
+                Longhorn gives a <a href="https://kubernetes.io/docs/concepts/overview/">Kubernetes</a> cluster block storage out of the disks that are already inside its nodes. It turns those disks into volumes that Pods claim like any other <a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">PersistentVolume</a>, and it keeps a configurable number of replicas of each volume on different machines, so losing one node does not lose the data. The data lives on the nodes themselves, which is what ties the availability of the storage to the availability of the machines.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-storage/assets/longhorn-nodes.png" alt="The Longhorn UI" width="1149" height="282" loading="lazy">
+                </div>
+                <figcaption>The Longhorn UI showing the nodes and their status.</figcaption>
+            </figure>
+            <p>
+                My volumes run two replicas, which on three nodes is enough to survive losing one of them. They are declared in the same GitOps manifests as everything else, so they are created alongside the application I am deploying. This comes with the fact, that deleting an application also deletes the pvc that belongs to it. To make sure I don't accidentally delete data I need the claims have an annotation telling <a href="https://argo-cd.readthedocs.io/en/stable/">Argo CD</a> to not also trigger deletion inside Longhorn.
+            </p>
+            <p>
+                Longhorn also has a shared read-write mode, and it works differently from the rest. Rather than replicating a filesystem, it runs an <a href="https://longhorn.io/docs/latest/nodes-and-volumes/volumes/rwx-volumes/">NFS server inside a share-manager Pod</a> for that one volume, so every writer goes through a single Pod. That is the mode those two containers need, which is why they run on NFS now.
+            </p>
+
+            <h3 class="subsection-heading">My ZFS pool</h3>
+            <p>
+                <a href="https://openzfs.github.io/openzfs-docs/">ZFS</a> is a filesystem and a volume manager in one. It does redundancy in software, so a group of ordinary disks can behave like one larger, fault-tolerant drive, and the documentation explains the model better than a paragraph here can.
+            </p>
+            <p>
+                The NAS itself is a small ITX build: an ASRock N100DC-ITX board in a Jonsbo N10 case, running off a laptop-style power brick instead of an ATX supply. The board has a single DIMM slot and one 8 GB module in it. ZFS will happily use far more memory than that once you turn on the nicer features, so that module is the first thing I would change about this build. It runs fine in the meantime.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-storage/assets/nas-open.jpg" alt="The NAS case open on a desk during assembly" width="1600" height="1453" loading="lazy">
+                </div>
+                <figcaption>The storage host while I was building it, case open on the desk.</figcaption>
+            </figure>
+            <p>
+                There are no spinning disks in it, and there are none anywhere else in the house either. Everything is SSD, which is what keeps the whole setup quiet enough to live in a cupboard.
+            </p>
+            <p>
+                The pool is three 2 TB SATA SSDs in a single <a href="https://openzfs.github.io/openzfs-docs/Basic%20Concepts/RAIDZ.html">raidz1</a> vdev, the single-parity layout and the ZFS equivalent of RAID 5. That is one drive of tolerance and about 4 TB usable.
+            </p>
+            <p>
+                On top of the pool sit three datasets: one for volumes the cluster mounts read-write-many, one for backups of the machines in the house, and one as the target for Longhorn volume backups.
+            </p>
+
+            <h3 class="subsection-heading" id="the-drive-that-stopped-and-what-it-cost">The drive that stopped, and what it cost</h3>
+            <p>
+                I bought the three SSDs from three different brands on purpose, so that a bad batch could not take out the whole vdev in one go.
+            </p>
+            <p>
+                While routinely checking the NAS one day, I found the pool degraded. Everything above it kept working, which is exactly what ZFS is for: the array served reads and writes from the two healthy drives and needed nothing from me until I had time to deal with it.
+            </p>
+            <p>
+                This is what the pool says about itself:
+            </p>
+            <pre><code>$ zpool status
+pool: nas-main
+  state: DEGRADED
+status: One or more devices has been taken offline by the administrator.
+        Sufficient replicas exist for the pool to continue functioning in a
+        degraded state.
+config:
+        NAME                                       STATE     READ WRITE CKSUM
+        nas-main                                   DEGRADED     0     0     0
+          raidz1-0                                 DEGRADED     0     0     0
+            ata-INTENSO_SSD_1642501004004130       ONLINE       0     0     0
+            ata-Sandisk_SSD_PLUS_2TB_25425A400700  ONLINE       0     0     0
+            ata-Vi550_S3_SSD_493545318371714       OFFLINE      0     0     0</code></pre>
+            <p>
+                When I had that time, I pulled the drive out of the pool and out of the machine and opened a return with the vendor. They could not replace it, so they refunded what I had paid: 105€. A 2 TB SSD costs around 250€ currently, so the refund covered roughly half a drive, and the pool has been running on two of three ever since.
+            </p>
+            <p>
+                It will stay that way until SSD prices come back down. Running with one drive of tolerance is not what I would have chosen, but it is not an emergency either, and the alternative is paying current prices for capacity I have already paid for once.
+            </p>
+            <p>
+                This drive is in the <a href="/blog/homelab-cluster/#what-has-broken">what has broken</a> list in the cluster post, next to the power cut that took all three nodes down at once.
+            </p>
+
+            <h3 class="subsection-heading">Snapshots are not backups</h3>
+            <p>
+                Longhorn replicates a volume across nodes, which covers a node dying. It does not cover deleting the wrong thing, because the deletion replicates too. That is what volume backups are for.
+            </p>
+            <p>
+                Mine sync to the NAS as a backup target, which means the backup of the cluster's storage lives on the same machine the cluster depends on. That is one failure domain with extra steps, and I have decided I am fine with it.
+            </p>
+            <p>
+                There are no offsite backups. Almost everything I run is stateless and rebuilds from Git, so what is genuinely at risk is the Minecraft world and the MacBook backups. Losing the world would hurt, but paying for offsite storage I would probably never need is the worse trade for a private cluster. For the MacBooks and the NAS to go at the same moment I would have to be unlucky twice, and I will take those odds.
+            </p>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

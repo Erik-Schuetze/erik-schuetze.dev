@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What Runs This Website - Erik Schütze</title>
+    <meta name="description" content="Three N100 mini PCs, a NAS and one GPU node: how my bare-metal k3s cluster is built, and the machines I ran at home before it.">
+    <meta name="keywords" content="k3s, Kubernetes, homelab, bare metal, Longhorn, ZFS, MetalLB, Caddy, ArgoCD, GitOps, NFS, self-hosting">
+    <meta name="author" content="Erik Schütze">
+    <link rel="canonical" href="https://erik-schuetze.dev/blog/homelab-cluster/">
+    <!-- Social / preview meta -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Erik Schütze">
+    <meta property="og:title" content="What Runs This Website - Erik Schütze">
+    <meta property="og:description" content="Three N100 mini PCs, a NAS and one GPU node: how my bare-metal k3s cluster is built, and the machines I ran at home before it.">
+    <meta property="og:url" content="https://erik-schuetze.dev/blog/homelab-cluster/">
+    <meta property="og:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta property="article:published_time" content="2026-09-13">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="What Runs This Website - Erik Schütze">
+    <meta name="twitter:description" content="Three N100 mini PCs, a NAS and one GPU node: how my bare-metal k3s cluster is built, and the machines I ran at home before it.">
+    <meta name="twitter:image" content="https://erik-schuetze.dev/assets/images/profile.jpg">
+    <meta name="theme-color" content="#efdbbf">
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/blog.css">
+
+    <!-- Standard favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/cloud-logo-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/cloud-logo-16.png">
+
+    <!-- Optional: fallback for older browsers -->
+    <link rel="shortcut icon" href="/assets/images/cloud-logo-32.png">
+
+    <script defer src="https://analytics.erik-schuetze.dev/script.js" data-website-id="b6f141d2-c98b-4c71-b454-7134e1a77831"></script>
+</head>
+<body>
+<nav class="navbar">
+    <div class="nav-brand">
+        <a href="/">Erik Schütze</a>
+    </div>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/" class="active">Blog</a></li>
+        <li><a href="/about/">About</a></li>
+    </ul>
+</nav>
+<div class="blog-layout">
+    <div class="title-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <h2 class="title">What Runs This Website</h2>
+            <p class="subtitle">Three N100s, a NAS, and a whole lot of YAML</p>
+            <div class="post-meta">
+                <a class="back-link" href="/blog/">&larr; Back to Blog</a>
+                <time class="post-date" datetime="2026-09-13">Sep 13, 2026</time>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+            <div class="article-heading">
+                <h2 class="section-heading">The hardware behind erik-schuetze.dev</h2>
+                <img class="article-thumbnail" src="/blog/homelab-cluster/assets/cluster-thumb.jpg" alt="The homelab cluster in its cabinet" width="256" height="256" loading="lazy">
+            </div>
+            <p>
+                <a href="https://kubernetes.io/docs/concepts/overview/">Kubernetes</a> is a way to orchestrate workloads across more than one computer. The machines talk to each other and agree on where your containers run and how the environment around them has to be shaped to make that work. Bare metal just means it runs on my hardware instead of a cloud provider's.
+            </p>
+            <p>
+                This site is served by a bare-metal <a href="https://docs.k3s.io/">k3s</a> cluster in a cabinet in my flat: three identical mini PCs, a NAS, and a workstation that doubles as a living room gaming PC. Almost all of it is described by files in a Git repository, and everything above the operating system comes back out of those files.
+            </p>
+            <p>
+                I built it because I was curious about Kubernetes and did not have many opportunities to do so at work, so running my own was the way to learn it.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/cluster-in-cabinet.jpg" alt="The homelab cluster in its cabinet" width="1600" height="1600" loading="lazy">
+                </div>
+                <figcaption>The homelab cluster as it actually lives, in its cabinet.</figcaption>
+            </figure>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/diagram.svg" alt="Diagram of the cluster: ingress and TLS in front of three N100 nodes and a GPU node, backed by Longhorn on local NVMe and a ZFS pool shared over NFS" width="600" height="450" loading="lazy">
+                </div>
+                <figcaption>The whole thing at a glance.</figcaption>
+            </figure>
+
+            <h3 class="subsection-heading">How I got here</h3>
+            <p>
+                I built a gaming PC when I moved out and have been interested in computers since. With some money left over I put together a very cheap NAS out of used drives and one of the NAS-specific operating systems, mostly to see what it would do.
+            </p>
+            <p>
+                When I applied for my vocational training I asked what I should start learning, and the answer was the Linux command line and some Python. That is where I started, and the shell turned out to be genuinely interesting.
+            </p>
+            <p>
+                That became a run of NAS builds. The first was an Intel Q8200 with two drives and a cut towel in front of it to dampen the noise, which did not dampen much noise.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/student-homeserver.jpg" alt="The first NAS build, an Intel Q8200 machine with a towel in front of it" width="1600" height="1185" loading="lazy">
+                </div>
+                <figcaption>The first NAS: an Intel Q8200 with two drives and the towel.</figcaption>
+            </figure>
+            <p>
+                The next one ran Ubuntu with 3x3 TB spinning disks under ZFS, which was an enormous amount of storage for me at the time. I tried to set them up to farm a crpytocurrency called Chia, which was based on hashes on disk space, but ultimately I sent the drives back, as I did not need that much space.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/hdd-nas.jpg" alt="The 3 TB NAS running Ubuntu and ZFS" width="1600" height="899" loading="lazy">
+                </div>
+                <figcaption>The 9 TB build, running Ubuntu and ZFS.</figcaption>
+            </figure>
+            <p>
+                Then I built something else entirely: a homeserver around the limited edition Vega 64 Iron Edition, with Noctua Chromax fans, a Ryzen CPU, plenty of memory, and LEDs. It was as capable as the gaming PCs of some people, and it picked up the name Atlas, which has followed me since. It was also where I dabbled in cryptomining.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/atlas-01.jpg" alt="The 2021 homeserver with the Vega 64 Iron Edition installed" width="1600" height="1600" loading="lazy">
+                </div>
+                <figcaption>The 2021 homeserver, with the Vega 64 Iron Edition in it.</figcaption>
+            </figure>
+            <p>
+                GPUs keep ending up in my machines: an RTX 2060, the Vega 64 Iron Edition, the Vega Frontier Edition, and now an RTX 3070. I mainly used them for deep learning experiments, some mining, Folding@home, and local LLM and image generation, but I never had the time to go deep into ROCm or CUDA. 
+            </p>
+            <p>
+                What did bother me was the size and the noise, so at some point I got rid of it and went back to not having a homeserver and website at all.
+            </p>
+            <p>
+                The interest in Kubernetes came later. I took a step back and worked out what a homelab would have to be to actually fit how I live: small, silent, and cheap to run. Later dedicated storage need brought atlas back into the setup, this time on a low-power N100 based mainboard. Running only SSDs in it with 4TB usable space.
+            </p>
+            <p>
+                Silence is one of my main priorities. It is why the machines are small and quiet, and why my gaming PC is fully water cooled.
+            </p>
+
+            <h3 class="subsection-heading">The four machines</h3>
+            <p>
+                I started with an almost identical setup on Raspberry Pi's, but quickly noticed their limitations. Today three N100 mini PCs are the compute plane. Each one runs on a 4-core CPU and has 16 GB of memory, which is plenty for what I run on them.
+            </p>
+            <p>
+                As I need to run multiple nodes with a real cluster, the power draw adds up quickly. They draw very little power and make no noise, and this makes them ideal for a small, quiet homelab.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/3-nodes-open.jpg" alt="Three mini PCs with their cases open during assembly" width="1600" height="1205" loading="lazy">
+                </div>
+                <figcaption>Three Beelink N100 Mini PCs, open while I set them up.</figcaption>
+            </figure>
+            <p>
+                The fourth machine is storage: It's based on the Asrock N100DC-ITX, which is powered by a Laptop style power brick directly instead of needing a special form factor PSU to fit in this case. The case supports 4 SSDs, which is perfect for my 3x 2 TB SSDs running with ZFS and one OS Drive. It is not a Kubernetes node. It exports NFS to the network so the nodes can mount it.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/nas-open.jpg" alt="The storage host with its case top open" width="1600" height="1453" loading="lazy">
+                </div>
+                <figcaption>The storage host, top off, showing the case I picked for it: the Jonsbo N10.</figcaption>
+            </figure>
+            <p>
+                The last machine is the odd one out and the only one that is not a small N100. It is a Ryzen 5 5500 with an RTX 3070, and it dual boots: in the cluster it is the GPU node, and <a href="https://bazzite.gg/">Bazzite</a> on the same hardware is my living room gaming PC.
+            </p>
+            <p>
+                The 5500 is a single-die part, so it idles lower than the 5600 while still having six full performance cores. It is essentially a Ryzen APU with the graphics fused off. The Vega Frontier Edition it used to run has been retired and hangs framed on a wall, which <a href="/blog/vega-frontier/">Taming the Vega Frontier Edition</a> covers.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/gpu-node.jpg" alt="The Lian Li Dan Case A3 as an mATX case for the GPU node" width="1600" height="1419" loading="lazy">
+                </div>
+                <figcaption>The GPU node, showing the Lian Li Dan Case A3 as an mATX case for the GPU Node.</figcaption>
+            </figure>
+
+            <h3 class="subsection-heading">Two storage tiers, on purpose</h3>
+            <p>
+                There are two storage systems here because they solve different problems, and I stopped trying to make one of them do both. <a href="https://longhorn.io/docs/">Longhorn</a> runs on the NVMe drives inside the compute nodes and keeps replicas of every volume on different machines, so a volume survives one of them going away. Because the data never leaves local disks it is also the fast tier, and anything with real state lives on it.
+            </p>
+            <p>
+                The second tier is <a href="https://wiki.archlinux.org/title/NFS">NFS</a> on ZFS, exported from the storage host. It gives me read-write-many volumes, which Longhorn only manages by running a single NFS server inside the cluster for one volume at a time, plus snapshots and a real filesystem underneath. Static content and anything several Pods need to write at once live there.
+            </p>
+            <p>
+                The trade-off is that the NAS is one machine, so everything on that tier is down whenever the NAS is. <a href="/blog/homelab-storage/">Running ZFS and Longhorn Side by Side</a> goes through the split and what it has cost so far.
+            </p>
+            <p>
+                The GPU node holds no Longhorn replicas at all, and that is on purpose. The machine leaves the cluster whenever I want to use it as a gaming PC, so I gave it no storage to keep and tag only the workloads that need the GPU onto it.
+            </p>
+            <p>
+                Those deployments scale down cleanly while it is away and come back when it returns. In a homelab the only person using those workloads is me, so I can get away with it.
+            </p>
+            <p>
+                The Minecraft server I run with friends is the clearest example. It prefers the Ryzen node and fails over to a mini PC whenever that machine is not in the cluster.
+            </p>
+
+            <h3 class="subsection-heading" id="networking-on-bare-metal">Networking on bare metal</h3>
+            <p>
+                The cloud hands a Service of type <code>LoadBalancer</code> an address from the platform. On bare metal there is no platform, so <a href="https://metallb.universe.tf/">MetalLB</a> takes a pool of addresses on my own network and announces them for the Services that ask for one. The network itself is a Unifi gateway with a dedicated Ubiquiti access point, and the gateway gives the cluster its own subnet with plenty of free addresses in it.
+            </p>
+            <p>
+                HTTPS is the part that turned out not to be as easy as it sounds. On an ordinary Linux host I would run certbot and sync the result, but <a href="https://caddyserver.com/docs/">Caddy</a> has to serve certificates for several sites from inside the cluster, so I looked into decoupling it from the sites themselves.
+            </p>
+            <p>
+                It runs as a Deployment rather than anything pinned to a host port, and it keeps its ACME state on a shared volume. Every restart or change used to be a chance to hit the certificate issuer's rate limits, and once that state was on a volume there was no reason not to run two replicas and get faster failover out of it.
+            </p>
+            <p>
+                My internet connection has a dynamic address, so the DNS records that point at it have to move with it. A small controller I wrote in Go handles that, and <a href="/blog/ddns-controller/">Dynamic DNS, Kubernetes-native</a> is the whole story.
+            </p>
+
+            <h3 class="subsection-heading">GitOps with Argo CD</h3>
+            <p>
+                <a href="https://argo-cd.readthedocs.io/en/stable/">Argo CD</a> watches my manifests repository and keeps the cluster matching it. At work I prefer Flux for its simplicity, but at home it's nice to have a UI to trigger a restart manually. The whole cluster definition is defined in one repository as an app-of-apps: one root Application points at a directory of Applications, and each of those owns one part of the system. Adding a tool means adding a file.
+            </p>
+            <p>
+                Rebuilding a machine is not as clean as that makes it sound. It starts with installing Ubuntu, copying SSH keys over, setting the hostname, and creating the user, and none of that is in Git. What is repeatable is everything above it: install k3s, join the machine to the cluster, and Argo CD goes on as a Helm chart, after which the root Application brings back the rest.
+            </p>
+
+            <h3 class="subsection-heading">How the websites get here</h3>
+            <p>
+                Every site is a static folder in a Git repository. <a href="https://nginx.org/en/docs/">nginx</a> serves it, with a <a href="https://github.com/kubernetes/git-sync">git-sync</a> sidecar pulling the repository into a shared volume every thirty seconds, so a commit is live about half a minute later and nothing is rebuilt along the way. <a href="/blog/git-sync-deploys/">My Website Hosting Setup</a> goes through how that arrangement got here.
+            </p>
+
+            <h3 class="subsection-heading">Monitoring</h3>
+            <p>
+                <a href="https://prometheus.io/docs/introduction/overview/">Prometheus</a> and <a href="https://grafana.com/docs/">Grafana</a> cover node health, disk usage, temperatures, and whether the sites answer. <a href="https://docs.influxdata.com/influxdb/">InfluxDB</a> and <a href="https://docs.influxdata.com/telegraf/">Telegraf</a> keep the metrics I want around for longer than Prometheus should. Most of the time the dashboard is flat lines, and that is what I want to see.
+            </p>
+            <figure class="blog-figure">
+                <div class="blog-figure-inner">
+                    <div class="blog-figure-shadow"></div>
+                    <img src="/blog/homelab-cluster/assets/grafana-screenshot.png" alt="The Grafana dashboard for the cluster" width="1600" height="821" loading="lazy">
+                </div>
+                <figcaption>The cluster dashboard mainly showing general capacity and temperature.</figcaption>
+            </figure>
+
+            <h3 class="subsection-heading" id="what-has-broken">What has broken</h3>
+            <p>
+                Once a power cut took all three compute nodes down at once, and none of them came back on their own. I found out while I was away from home via an e-mail. Fortunately restoring operations was as easy as walking over and pressing three power buttons.
+            </p>
+            <p>
+                What surprised me was the software. The nodes stopped at different moments and came back in an order I do not control, all at once or one at a time, and the cluster settled on the same state either way. Rebuilding one consistent view of a cluster out of three machines that were cut off mid-flight is the part I expected to be fragile. Nothing changed afterwards; they run in the cabinet the way they did before.
+            </p>
+            <p>
+                A 2 TB SSD in the storage pool failed as well, and it picked a bad moment. With SSD prices the way they are, a replacement costs more than twice what I paid for the drive, so the pool has been running one drive short since. <a href="/blog/homelab-storage/#the-drive-that-stopped-and-what-it-cost">Running ZFS and Longhorn Side by Side</a> has the details.
+            </p>
+
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -64,12 +64,12 @@
             </div>
               <h3 class="subsection-heading">Make the Internet more human</h3>
               <p>
-                Following the movement of content creators like <a href="https://youtu.be/Tv223kX0SRg?si=_NA9ibj9m19fGGvw" target="_blank">Marighoul</a> or <a href="https://coolthingswefound.com" target="_blank">Answer in Progress</a>, I will share some human curated content in this Blog or share things I built myself.                
+                I follow creators like <a href="https://youtu.be/Tv223kX0SRg?si=_NA9ibj9m19fGGvw" target="_blank">Marighoul</a> and <a href="https://coolthingswefound.com" target="_blank">Answer in Progress</a>, and this Blog is my attempt at the same thing: human curated content, or things I built myself.
               </p>
               <h3 class="subsection-heading">What is this 'IndieWeb'?</h3>
               <p>
                 The IndieWeb is a movement of people trying to create their own websites.
-                An important aspect is the desire to make the web more human, by avoiding AI generated content or discovery driven by algorhitms.
+                An important aspect is the desire to make the web more human, by avoiding AI generated content and discovery driven by algorithms.
                 This offers creative freedom, which classic social media websites don't offer anymore. <br>
                 Recently some people started using websites like <a href="https://neocities.org/browse">Neocities</a> to create their own page and connect them in webrings, which mimic how the Internet worked in the 90s.
               </p>
@@ -80,12 +80,68 @@
         <div class="content-shadow"></div>
         <div class="content">
           <div class="article-heading">
-            <h2 class="section-heading"><a href="vega-frontier/">Taming the Vega Frontier</a></h2>
-            <img class="article-thumbnail" src="/blog/vega-frontier/assets/vega-logo.webp" alt="Vega Frontier Edition">
+            <h2 class="section-heading"><a href="homelab-storage/">Running ZFS and Longhorn Side by Side</a></h2>
+            <img class="article-thumbnail" src="/blog/homelab-storage/assets/nas-thumb.jpg" alt="The storage host with its case open" width="256" height="256" loading="lazy">
           </div>
-          <h3 class="subsection-heading">Building a silent 14B AI inference server in K3s.</h3>
+          <h3 class="subsection-heading">Longhorn on the cluster nodes, ZFS on a NAS, and what decides between them</h3>
           <p>
-            How I re-engineered a 2017 AMD Vega Frontier Edition—infamous for its 250W power draw and blower noise—into a completely silent, highly efficient Kubernetes-native AI inference node running Ollama. You can read the full hardware breakdown and find the custom cooling scripts <a href="vega-frontier/">here</a>.
+            Two storage systems in one homelab: why this website's containers moved to NFS, what a vendor refund actually paid for a failed SSD, and where the backups land.
+          </p>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+          <div class="article-heading">
+            <h2 class="section-heading"><a href="git-sync-deploys/">My Website Hosting Setup</a></h2>
+            <img class="article-thumbnail" src="/blog/git-sync-deploys/assets/thumb.svg" alt="A git commit pointing down at a web page" width="128" height="128" loading="lazy">
+          </div>
+          <h3 class="subsection-heading">One Caddy in front, one nginx and git-sync Pod per site</h3>
+          <p>
+            How the sites I host ended up split into separate Deployments behind a shared Caddy, and what it took to get there: one container holding everything, a restart on every content update, the rate limits that followed, and the merge that broke things until the volume moved.
+          </p>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+          <div class="article-heading">
+            <h2 class="section-heading"><a href="ddns-controller/">Dynamic DNS, Kubernetes-native</a></h2>
+            <img class="article-thumbnail" src="/blog/ddns-controller/assets/thumb.svg" alt="A cloud pointing down at a DNS record" width="128" height="128" loading="lazy">
+          </div>
+          <h3 class="subsection-heading">A small pod that keeps my records pointing at my router</h3>
+          <p>
+            Why my DNS updates run inside the cluster instead of on a machine underneath it: a small Go program, the ConfigMap it reads, and the API move that made me rewrite the client.
+          </p>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+          <div class="article-heading">
+            <h2 class="section-heading"><a href="homelab-cluster/">What Runs This Website</a></h2>
+            <img class="article-thumbnail" src="/blog/homelab-cluster/assets/cluster-thumb.jpg" alt="The homelab cluster in its cabinet" width="256" height="256" loading="lazy">
+          </div>
+          <h3 class="subsection-heading">Three N100s, a NAS, and a whole lot of YAML</h3>
+          <p>
+            The cluster behind this site, from a Q8200 NAS with a towel in front of it to three silent mini PCs: two storage tiers on purpose, MetalLB on bare metal, GitOps, and the parts that broke, including the outage that took all three nodes down.
+          </p>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="content-shadow"></div>
+        <div class="content">
+          <div class="article-heading">
+            <h2 class="section-heading"><a href="vega-frontier/">Taming the Vega Frontier Edition</a></h2>
+            <img class="article-thumbnail" src="/blog/vega-frontier/assets/vega-logo.webp" alt="Vega Frontier Edition" width="256" height="256" loading="lazy">
+          </div>
+          <h3 class="subsection-heading">Building a silent 14B AI inference server in K3s</h3>
+          <p>
+            A 2017 AMD Vega Frontier Edition is famous for two things: a 250W power draw and a blower fan you can hear through a wall. I turned mine into a silent Ollama node.
           </p>
         </div>
       </div>
@@ -95,11 +151,11 @@
         <div class="content">
           <div class="article-heading">
             <h2 class="section-heading"><a href="banto/">Bantō - Minimal Kanban</a></h2>
-            <img class="article-thumbnail" src="/blog/banto/assets/banto.webp" alt="Banto Logo">
+            <img class="article-thumbnail" src="/blog/banto/assets/banto.webp" alt="Banto Logo" width="174" height="174" loading="lazy">
           </div>
-          <h3 class="subsection-heading">My very simple implementation of a kanban board.</h3>
+          <h3 class="subsection-heading">My very simple implementation of a kanban board</h3>
           <p>
-            A zero-dependency kanban board that runs entirely in the browser. I built <a href="banto/">Bantō</a> for my homelab to keep track of projects and tasks — no account, no cloud, no framework. Just HTML, CSS, and vanilla JavaScript. You can try it at <a href="https://banto.erik-schuetze.dev" target="_blank">banto.erik-schuetze.dev</a>.
+            A zero-dependency kanban board that runs entirely in the browser. I built <a href="banto/">Bantō</a> for my own projects: no account, no cloud, no framework. Just HTML, CSS, and vanilla JavaScript. You can try it at <a href="https://banto.erik-schuetze.dev" target="_blank">banto.erik-schuetze.dev</a>.
           </p>
         </div>
       </div>
@@ -109,12 +165,11 @@
           <div class="content">
             <div class="article-heading">
               <h2 class="section-heading"><a href="peak-food-cheatsheet/">Peak Food Cheatsheet</a></h2>
-              <img class="article-thumbnail" src="/blog/peak-food-cheatsheet/assets/64px-Airline_Food.webp" alt="Peak Food Cheatsheet Logo">
+              <img class="article-thumbnail" src="/blog/peak-food-cheatsheet/assets/64px-Airline_Food.webp" alt="Peak Food Cheatsheet Logo" width="64" height="64" loading="lazy">
             </div>
             <h3 class="subsection-heading">Need a quick peek at all the different Food sources and their effects in Peak?</h3>
             <p>
               I created a simple Cheatsheet for the game <a href="https://landfall.se/peak" target="_blank">Peak</a>, which shows all the different Food sources and their effects in a compact way.
-              You can find it <a href="peak-food-cheatsheet/">here</a>.
             </p>
           </div>
       </div>
