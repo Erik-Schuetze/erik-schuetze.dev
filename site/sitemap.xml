@@ -11,6 +11,26 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://erik-schuetze.dev/blog/ddns-controller/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://erik-schuetze.dev/blog/git-sync-deploys/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://erik-schuetze.dev/blog/homelab-cluster/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://erik-schuetze.dev/blog/homelab-storage/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://erik-schuetze.dev/blog/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
