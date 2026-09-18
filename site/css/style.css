@@ -241,10 +241,7 @@ body {
     }
     #blog-box {
         bottom: 2.5rem;
-        /* Keep #blog-box flush left of #about-box (which is anchored
-           right: 35vw over its 150px width) so the two tiles never
-           overlap once they share the same bottom row. */
-        left: calc(65vw - 300px);
+        left: 28vw;
     }
 }
 
